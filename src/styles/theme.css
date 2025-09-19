@@ -1,0 +1,9 @@
+:root{
+    --primary:#2F5DFF; /* Royal Blue */
+    --navy:#0E1B2A; /* Dark Navy */
+    --fg:#111827; /* Foreground */
+    --success:#10B981; /* Emerald */
+    --warning:#F59E0B; /* Amber */
+    --bg:#F7FAFC; /* Soft Gray */
+    --card:#FFFFFF;
+}
