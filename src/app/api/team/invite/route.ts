@@ -8,7 +8,7 @@ import { getOrgContext } from "@/lib/access";
 import { InviteCreateSchema, InviteRevokeSchema } from "@/lib/zod";
 
 function baseUrl() {
-    const u = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "http://localhost:3000";
+    const u = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || "https://www.digitalindex.co.uk";
     return u.startsWith("http") ? u : `https://${u}`;
 }
 

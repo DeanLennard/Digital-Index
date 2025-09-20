@@ -14,7 +14,7 @@ function baseUrl() {
         process.env.NEXTAUTH_URL ||
         process.env.APP_BASE_URL ||
         process.env.VERCEL_URL ||
-        "http://localhost:3000";
+        "https://www.digitalindex.co.uk";
     return u.startsWith("http") ? u : `https://${u}`;
 }
 

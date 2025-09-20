@@ -12,7 +12,7 @@ export const metadata: Metadata = {
         template: "%s — Digital Index",
     },
     description: "Know your SME’s digital score. Track progress. Get clear next actions.",
-    metadataBase: new URL(process.env.NEXTAUTH_URL || "http://localhost:3000"),
+    metadataBase: new URL(process.env.NEXTAUTH_URL || "https://www.digitalindex.co.uk"),
     openGraph: {
         title: "Digital Index",
         description: "Know your SME’s digital score. Track progress. Get clear next actions.",

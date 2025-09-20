@@ -10,7 +10,7 @@ export const authConfig: NextAuthConfig = {
     pages: { signIn: "/signin" },
     providers: [
         ResendProvider({
-            from: process.env.EMAIL_FROM || "Digital Index <no-reply@localhost.test>",
+            from: process.env.EMAIL_FROM || "Digital Index <no-reply@digitalindex.co.uk>",
             ...(RESEND_KEY ? { apiKey: RESEND_KEY } : {}),
             // Dev-friendly: log magic link if not configured or if send fails
             async sendVerificationRequest({ identifier, url, provider }) {
