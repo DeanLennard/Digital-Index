@@ -180,17 +180,29 @@ async function upsertSubscription(payload: SubDoc) {
 
 export async function POST(req: Request) {
     const sig = req.headers.get("stripe-signature");
+
+    console.log("[stripe] webhook hit, sig present:", !!sig);
+    console.log("[stripe] whsec prefix:", process.env.STRIPE_WEBHOOK_SECRET?.slice(0,8));
+
     if (!sig) return new NextResponse("Missing signature", { status: 400 });
 
     const secret = process.env.STRIPE_WEBHOOK_SECRET!;
+    if (!secret) {
+        console.error("[stripe] Missing STRIPE_WEBHOOK_SECRET in env");
+        return new NextResponse("Server misconfigured", { status: 500 });
+    }
+
     const body = await req.text();
 
     let event: Stripe.Event;
     try {
         event = stripe.webhooks.constructEvent(body, sig, secret);
     } catch (err: any) {
+        console.error("[stripe] constructEvent failed:", err.message);
         return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
     }
+
+    console.log("[stripe] event received:", event.type, event.id);
 
     // idempotency
     const events = await col("webhookEvents");
