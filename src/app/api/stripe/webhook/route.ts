@@ -1,5 +1,6 @@
 // src/app/api/stripe/webhook/route.ts
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
@@ -180,23 +181,20 @@ async function upsertSubscription(payload: SubDoc) {
 
 export async function POST(req: Request) {
     const sig = req.headers.get("stripe-signature");
-
     console.log("[stripe] webhook hit, sig present:", !!sig);
-    console.log("[stripe] whsec prefix:", process.env.STRIPE_WEBHOOK_SECRET?.slice(0,8));
+    console.log("[stripe] whsec prefix:", process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 8));
 
     if (!sig) return new NextResponse("Missing signature", { status: 400 });
 
-    const secret = process.env.STRIPE_WEBHOOK_SECRET!;
-    if (!secret) {
-        console.error("[stripe] Missing STRIPE_WEBHOOK_SECRET in env");
-        return new NextResponse("Server misconfigured", { status: 500 });
-    }
+    const secret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (!secret) return new NextResponse("Server misconfigured", { status: 500 });
 
-    const body = await req.text();
+    // ✅ Use raw bytes
+    const raw = Buffer.from(await req.arrayBuffer());
 
     let event: Stripe.Event;
     try {
-        event = stripe.webhooks.constructEvent(body, sig, secret);
+        event = stripe.webhooks.constructEvent(raw, sig, secret);
     } catch (err: any) {
         console.error("[stripe] constructEvent failed:", err.message);
         return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
