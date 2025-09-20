@@ -1,4 +1,6 @@
-// "use client";
+// src/components/billing/ManagePortalButton.tsx
+'use client';
+
 import { useState } from "react";
 
 export function ManagePortalButton() {
