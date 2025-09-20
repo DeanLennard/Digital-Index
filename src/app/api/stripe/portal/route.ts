@@ -24,6 +24,7 @@ export async function POST() {
 
     const subs = await col("subscriptions");
     const sub = await subs.findOne<{ stripeCustomerId?: string }>({ orgId });
+
     if (!sub?.stripeCustomerId) {
         return NextResponse.json({ error: "No Stripe customer for this org" }, { status: 400 });
     }
@@ -33,14 +34,30 @@ export async function POST() {
             customer: sub.stripeCustomerId,
             return_url: `${baseUrl()}/app/billing`,
         };
-        // Optional: pin an explicit portal config (create/copy from Stripe dashboard)
-        if (process.env.STRIPE_PORTAL_CONFIGURATION_ID) {
-            params.configuration = process.env.STRIPE_PORTAL_CONFIGURATION_ID;
+
+        // ⚠️ Many 500s happen because this is set to a TEST config ID in LIVE mode.
+        const cfg = process.env.STRIPE_PORTAL_CONFIGURATION_ID?.trim();
+        if (cfg) {
+            // If you’re unsure, comment the next line to let Stripe use the default config.
+            params.configuration = cfg;
         }
+
+        console.log("[portal] creating session", {
+            orgId,
+            customer: sub.stripeCustomerId,
+            configuration: params.configuration ?? "(default)",
+            baseUrl: baseUrl(),
+        });
 
         const session = await stripe.billingPortal.sessions.create(params);
         return NextResponse.json({ url: session.url });
     } catch (err: any) {
+        console.error("[portal] error:", {
+            message: err?.message,
+            type: err?.type,
+            code: err?.code,
+            raw: err?.raw,
+        });
         return NextResponse.json({ error: err?.message || "Stripe error" }, { status: 500 });
     }
 }
