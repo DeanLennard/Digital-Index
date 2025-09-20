@@ -15,7 +15,7 @@ import "@/styles/theme.css";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-    title: { default: "App — Digital Index", template: "%s — Digital Index" },
+    title: { default: "Digital Index", template: "%s - Digital Index" },
 };
 
 async function MaybeAdminLink() {
