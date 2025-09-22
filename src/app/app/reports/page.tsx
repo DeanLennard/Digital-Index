@@ -1,26 +1,38 @@
 // src/app/app/reports/page.tsx
+export const runtime = "nodejs";
+
 import Link from "next/link";
-import { col } from "@/lib/db";
+import { redirect } from "next/navigation";
 import { ObjectId } from "mongodb";
+import { col } from "@/lib/db";
+import { getOrgContext } from "@/lib/access";
 
 export default async function ReportsPage({
                                               searchParams,
                                           }: {
-    // 👇 make searchParams a Promise and await it
+    // Next 15: Promise-based searchParams
     searchParams: Promise<{ surveyId?: string }>;
 }) {
-    const { surveyId } = await searchParams; // ✅ await before use
+    const { orgId, userId } = await getOrgContext();
+    if (!userId) redirect("/signin?callbackUrl=/app/reports");
+    if (!orgId) redirect("/app/onboarding");
 
-    // If a surveyId is present, show a quick “generate/view” panel for that survey
+    const { surveyId } = await searchParams;
+
+    // Only fetch the survey if it belongs to this org
     let survey: any = null;
     if (surveyId && ObjectId.isValid(surveyId)) {
         const surveys = await col("surveys");
-        survey = await surveys.findOne({ _id: new ObjectId(surveyId) });
+        survey = await surveys.findOne({ _id: new ObjectId(surveyId), orgId });
     }
 
-    // (Optional) list recent reports
+    // Only list reports for this org, and avoid leaking storage URLs
     const reportsCol = await col("reports");
-    const recentReports = await reportsCol.find({}).sort({ createdAt: -1 }).limit(10).toArray();
+    const recentReports = await reportsCol
+        .find({ orgId }, { projection: { _id: 1, surveyId: 1, createdAt: 1 } })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .toArray();
 
     return (
         <div className="mx-auto max-w-3xl p-6">
@@ -51,7 +63,10 @@ export default async function ReportsPage({
                 </div>
             )}
 
-            <h2 className="mt-8 text-lg font-semibold text-[var(--navy)]">Recent reports</h2>
+            <h2 className="mt-8 text-lg font-semibold text-[var(--navy)]">
+                Recent reports
+            </h2>
+
             {recentReports.length === 0 ? (
                 <p className="mt-2 text-gray-700 text-sm">No reports yet.</p>
             ) : (
@@ -61,14 +76,11 @@ export default async function ReportsPage({
                             <div className="text-sm">
                                 <div className="font-medium">Report {r._id.toString()}</div>
                                 <div className="text-gray-600">
-                                    Survey {r.surveyId?.toString()} • {new Date(r.createdAt).toLocaleString()}
+                                    Survey {r.surveyId?.toString()} •{" "}
+                                    {new Date(r.createdAt).toLocaleString()}
                                 </div>
                             </div>
-                            {r.pdfUrl ? (
-                                <a href={r.pdfUrl} className="text-sm text-[var(--primary)] underline">
-                                    View Report
-                                </a>
-                            ) : r.surveyId ? (
+                            {r.surveyId ? (
                                 <Link
                                     href={`/app/reports/pdf/${r.surveyId.toString()}`}
                                     className="text-sm text-[var(--primary)] underline"

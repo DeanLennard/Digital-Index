@@ -1,4 +1,4 @@
-// src/app/api/reports/[surveyId]/route.ts
+// src/app/api/reports/pdf/[surveyId]/route.ts
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
@@ -10,9 +10,9 @@ import { top3ActionsFrom } from "@/lib/scoring";
 
 export async function POST(
     _req: Request,
-    ctx: { params: Promise<{ surveyId: string }> } // ← Promise
+    ctx: { params: Promise<{ surveyId: string }> }
 ) {
-    const { surveyId } = await ctx.params;        // ← await
+    const { surveyId } = await ctx.params;
     const { orgId, userId } = await getOrgContext();
     if (!userId) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
@@ -23,33 +23,33 @@ export async function POST(
     const surveys = await col("surveys");
     const reports = await col("reports");
 
-    const survey = await surveys.findOne({ _id: new ObjectId(surveyId) });
+    // Authorize in the query
+    const q: any = { _id: new ObjectId(surveyId) };
+    const ors: any[] = [];
+    if (orgId)  ors.push({ orgId });
+    if (userId) ors.push({ userId });
+    if (ors.length) q.$or = ors;
+
+    const survey = await surveys.findOne(q);
     if (!survey) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    // Access: same org OR same user
-    const sameOrg  = orgId && survey.orgId && String(survey.orgId) === String(orgId);
-    const sameUser = survey.userId && String(survey.userId) === String(userId);
-    if (!sameOrg && !sameUser) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // ✅ Idempotency: if a report already exists for this survey, return it
+    // Idempotency: if a report exists for this survey, return it
     const existing = await reports.findOne({ surveyId: survey._id });
     if (existing) {
         return NextResponse.json({
             reportId: existing._id.toString(),
-            pdfUrl: existing.pdfUrl,
+            pdfUrl: existing.pdfUrl,        // internal route is fine
             summary: existing.summary,
             existed: true,
         });
     }
 
-    // Compute summary
+    // Build summary
     const bench = await getLatestBenchmark();
     const deltas = bench ? calcDeltas(survey.scores as any, bench.mapping as any) : null;
     const topActions = top3ActionsFrom(survey.scores as any);
 
-    // Stub PDF URL until S3/PDF is wired
+    // Keep this non-public; it routes through the secured page above
     const pdfUrl = `/app/reports/pdf/${surveyId}`;
 
     const summary = {
