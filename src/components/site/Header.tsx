@@ -33,7 +33,13 @@ const industries = [
     {
         href: "/industries/construction-trades",
         label: "Construction & Trades",
-        desc: "Quoting, scheduling, payments, safety & reviews." }
+        desc: "Quoting, scheduling, payments, safety & reviews."
+    },
+    {
+        href: "/industries/healthcare-clinics",
+        label: "Healthcare & Clinics",
+        desc: "Online booking, reminders, intake & compliance."
+    }
 ];
 
 export function Header() {
