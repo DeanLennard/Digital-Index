@@ -41,7 +41,7 @@ export default function AccountingIndustryPage() {
                 name: "How long does the baseline take?",
                 acceptedAnswer: {
                     "@type": "Answer",
-                    text: "10–15 minutes. You’ll get a clear score by category and a PDF snapshot you can share with partners and staff.",
+                    text: "10–15 minutes. You’ll get a clear score by category and a digital snapshot you can share with partners and staff.",
                 },
             },
             {

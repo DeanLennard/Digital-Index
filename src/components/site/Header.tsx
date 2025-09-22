@@ -30,7 +30,10 @@ const industries = [
         label: "Agencies & Professional Services",
         desc: "Cleaner handoffs, CRM hygiene, smoother delivery ops.",
     },
-    // Add more here as you publish them
+    {
+        href: "/industries/construction-trades",
+        label: "Construction & Trades",
+        desc: "Quoting, scheduling, payments, safety & reviews." }
 ];
 
 export function Header() {

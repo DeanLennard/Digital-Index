@@ -56,7 +56,7 @@ export default function ProServicesIndustryPage() {
                 name: "How quickly can we start?",
                 acceptedAnswer: {
                     "@type": "Answer",
-                    text: "Right away. The baseline takes 10–15 minutes and you’ll get your PDF snapshot instantly.",
+                    text: "Right away. The baseline takes 10–15 minutes and you’ll get your digital snapshot instantly.",
                 },
             },
         ],

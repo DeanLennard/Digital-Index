@@ -80,7 +80,7 @@ function JsonLd() {
     return (
         <script
             type="application/ld+json"
-            // @ts-expect-error: safe stringify for JSON-LD
+            suppressHydrationWarning
             dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
         />
     );
