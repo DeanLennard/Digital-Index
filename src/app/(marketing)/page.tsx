@@ -100,11 +100,16 @@ function JsonLd() {
         ],
     };
 
+    const jsonLd = JSON.stringify(json)
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/&/g, "\\u0026");
+
     return (
         <script
             type="application/ld+json"
-            // @ts-expect-error: letting us stringify safely
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
     );
 }
