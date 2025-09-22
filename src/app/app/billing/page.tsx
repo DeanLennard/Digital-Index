@@ -100,7 +100,7 @@ export default async function BillingPage({
                     <li>Quarterly full re-assessment</li>
                     <li>Monthly 3-question pulse + trend</li>
                     <li>Two tailored action nudges each month</li>
-                    <li>Template library & CSV/PDF exports</li>
+                    <li>Guides library & reports</li>
                     <li>Unlimited team seats</li>
                 </ul>
             </div>
