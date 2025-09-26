@@ -7,10 +7,9 @@ import { auth } from "@/lib/auth";
 import { col } from "@/lib/db";
 
 function safeTo(to: string | null): string {
-    // allow only same-origin relative paths; default to /app
+    // allow only same-origin *relative* paths
     if (!to) return "/app";
-    if (!to.startsWith("/")) return "/app";
-    // optional: block navigating back into auth endpoints, etc.
+    if (!to.startsWith("/") || to.startsWith("//")) return "/app";
     return to;
 }
 
@@ -27,7 +26,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Bad org id" }, { status: 400 });
     }
 
-    // Validate membership either in users.orgId[] or orgMembers
+    // Validate membership (in users.orgId[] OR orgMembers)
     const users = await col("users");
     const orgMembers = await col("orgMembers");
 
@@ -45,8 +44,10 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const res = NextResponse.redirect(new URL(to, url.origin));
-    // httpOnly so client JS can’t modify; server (getOrgContext) will still read it
+    // Use a RELATIVE redirect so the current host is preserved
+    const res = NextResponse.redirect(to);
+
+    // httpOnly cookie; server can read it via cookies() in getOrgContext
     res.cookies.set("di_org", String(org), {
         path: "/",
         sameSite: "lax",
@@ -54,5 +55,6 @@ export async function GET(req: Request) {
         httpOnly: true,
         maxAge: 60 * 60 * 24 * 365,
     });
+
     return res;
 }
