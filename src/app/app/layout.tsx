@@ -57,7 +57,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                     <div className="flex items-center gap-4 text-sm">
                         {await MaybeAdminLink()}
                         <Link
-                            href="/app/onboarding?noredir=1"
+                            href="/app/profile"
                             className="hidden sm:inline text-gray-600 hover:underline"
                             title="View / update your organisation details"
                         >

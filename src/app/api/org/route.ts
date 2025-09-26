@@ -10,7 +10,8 @@ const CH_BASE = `${process.env.NEXTAUTH_URL || "https://www.digitalindex.co.uk"}
 
 export async function POST(req: Request) {
     const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
+    const uid = session?.user?.id as string | undefined;
+    if (!uid) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
     const { name, sector, sizeBand, companyNumber } = await req.json();
 
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    // If a CH number is provided, fetch/validate details (server-side)
+    // Server-side Companies House lookup (if provided)
     let ch: null | {
         company_number: string | null;
         company_name: string | null;
@@ -31,12 +32,8 @@ export async function POST(req: Request) {
     if (companyNumber && typeof companyNumber === "string") {
         try {
             const r = await fetch(`${CH_BASE}/${encodeURIComponent(companyNumber)}`, { cache: "no-store" });
-            if (r.ok) {
-                ch = await r.json();
-            } else {
-                // Do not hard-fail org creation; just log
-                console.warn("[CH] lookup failed", companyNumber, r.status);
-            }
+            if (r.ok) ch = await r.json();
+            else console.warn("[CH] lookup failed", companyNumber, r.status);
         } catch (e) {
             console.warn("[CH] lookup error", e);
         }
@@ -44,6 +41,7 @@ export async function POST(req: Request) {
 
     const orgs = await col("orgs");
     const users = await col("users");
+    const orgMembers = await col("orgMembers");
 
     const now = new Date();
     const doc: any = {
@@ -69,21 +67,32 @@ export async function POST(req: Request) {
 
     const { insertedId } = await orgs.insertOne(doc);
 
-    const userId = new ObjectId(session.user.id as string);
+    // Link user → org (legacy array)
     await users.updateOne(
-        { _id: userId },
-        {
-            $addToSet: { orgId: insertedId },
-            $setOnInsert: { createdAt: now },
-        },
+        { _id: new ObjectId(uid) },
+        { $addToSet: { orgId: insertedId }, $setOnInsert: { createdAt: now } },
         { upsert: false }
     );
 
-    // cookie for current org
-    const res = NextResponse.json({ orgId: insertedId.toString() });
-    res.headers.set(
-        "Set-Cookie",
-        `di_org=${insertedId.toString()}; Path=/; Max-Age=${60 * 60 * 24 * 365}; SameSite=Lax`
+    // NEW: ensure membership row (owner)
+    await orgMembers.updateOne(
+        { orgId: String(insertedId), userId: String(uid) },
+        { $setOnInsert: { role: "owner", createdAt: now } },
+        { upsert: true }
     );
+
+    // Set active org cookie
+    const cookieParts = [
+        `di_org=${insertedId.toString()}`,
+        "Path=/",
+        `Max-Age=${60 * 60 * 24 * 365}`,
+        "SameSite=Lax",
+    ];
+    if (process.env.NODE_ENV === "production") {
+        cookieParts.push("Secure", "HttpOnly");
+    }
+
+    const res = NextResponse.json({ orgId: insertedId.toString() });
+    res.headers.set("Set-Cookie", cookieParts.join("; "));
     return res;
 }
