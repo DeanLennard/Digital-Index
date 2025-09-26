@@ -7,18 +7,27 @@ export default function OrgSwitcherClient({
                                               currentOrgId,
                                               orgs,
                                           }: { currentOrgId: string | null; orgs: Org[] }) {
-    function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
-        const next = e.target.value;
-        if (!next) return;
-        // Send the user back to the same page after switching
-        const to = `${location.pathname}${location.search || ""}`;
-        window.location.href = `/api/switch-org?org=${encodeURIComponent(next)}&to=${encodeURIComponent(
-            to || "/app"
-        )}`;
+    if (!orgs?.length) return null;
+
+    // Single org: show name only
+    if (orgs.length === 1) {
+        const only = orgs[0];
+        return (
+            <div className="text-sm text-gray-700" title="Your organisation">
+                {only.name || only._id}
+            </div>
+        );
     }
 
-    if (!orgs?.length) {
-        return null; // no orgs yet; hide switcher
+    // Multiple orgs: show select
+    const hasCurrent = currentOrgId && orgs.some(o => String(o._id) === String(currentOrgId));
+    const selected = hasCurrent ? String(currentOrgId) : String(orgs[0]._id);
+
+    function onChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        const next = e.target.value;
+        if (!next || next === selected) return;
+        const to = `${location.pathname}${location.search || ""}${location.hash || ""}`;
+        window.location.href = `/api/switch-org?org=${encodeURIComponent(next)}&to=${encodeURIComponent(to || "/app")}`;
     }
 
     return (
@@ -26,12 +35,12 @@ export default function OrgSwitcherClient({
             <span className="text-gray-600">Org:</span>
             <select
                 onChange={onChange}
-                value={currentOrgId || ""}
+                value={selected}
                 className="rounded border px-2 py-1 bg-white"
                 title="Switch organisation"
             >
                 {orgs.map((o) => (
-                    <option key={o._id} value={o._id}>
+                    <option key={String(o._id)} value={String(o._id)}>
                         {o.name || o._id}
                     </option>
                 ))}
