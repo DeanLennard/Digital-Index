@@ -13,6 +13,7 @@ import AppNav from "@/components/app/AppNav";
 import AuthButtons from "@/components/site/AuthButtons";
 import "@/styles/theme.css";
 import "@/app/globals.css";
+import OrgSwitcherServer from "@/components/app/OrgSwitcherServer";
 
 export const metadata: Metadata = {
     title: { default: "Digital Index", template: "%s - Digital Index" },
@@ -50,9 +51,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                     <Link href="/app" className="font-semibold text-[var(--navy)] tracking-tight">
                         Digital Index
                     </Link>
+
+                    <OrgSwitcherServer currentOrgId={orgId} />
+
                     <div className="flex items-center gap-4 text-sm">
                         {await MaybeAdminLink()}
-                        <span className="hidden sm:inline text-gray-600">{session.user?.email}</span>
+                        <Link
+                            href="/app/onboarding?noredir=1"
+                            className="hidden sm:inline text-gray-600 hover:underline"
+                            title="View / update your organisation details"
+                        >
+                            {session.user?.email}
+                        </Link>
                         <AuthButtons />
                     </div>
                 </div>

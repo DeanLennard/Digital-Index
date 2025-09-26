@@ -1,3 +1,4 @@
+// src/app/app/onboarding/page.tsx
 export const runtime = "nodejs";
 
 import { redirect } from "next/navigation";
@@ -5,7 +6,17 @@ import { auth } from "@/lib/auth";
 import { col } from "@/lib/db";
 import OnboardingForm from "./OnboardingForm";
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+                                                 searchParams,
+                                             }: {
+    // Next 15: searchParams is a Promise
+    searchParams: Promise<{ noredir?: string }>;
+}) {
+
+    // 0) Read flag to bypass auto-redirects
+    const { noredir } = await searchParams;
+    const bypass = noredir === "1" || noredir === "true";
+
     // 1) Ensure user is signed in
     const session = await auth();
     const userId = (session?.user as any)?.id as string | undefined;
@@ -15,7 +26,7 @@ export default async function OnboardingPage() {
     // 2) Already in an org? switch cookie via API and bounce to /app
     const members = await col("orgMembers");
     const existing = await members.findOne<{ orgId: string }>({ userId });
-    if (existing?.orgId) {
+    if (existing?.orgId && !bypass) {
         redirect(`/api/switch-org?org=${encodeURIComponent(existing.orgId)}&to=${encodeURIComponent("/app")}`);
     }
 

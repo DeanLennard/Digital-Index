@@ -1,41 +1,233 @@
 // src/app/app/onboarding/OnboardingForm.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+type ChSearchItem = {
+    company_number: string;
+    title: string;
+    address_snippet?: string;
+    company_status?: string;
+    date_of_creation?: string;
+};
+
+type ChCompany = {
+    company_number: string | null;
+    company_name: string | null;
+    company_status: string | null;
+    date_of_creation: string | null;
+    sic_codes: string[];
+    registered_office_address?: any;
+};
+
+// Your local file: /public/sic.json
+// { "01110": ["Growing of cereals...", "Agriculture, Forestry and Fishing"], ... }
+type SicEntry = [description: string, section: string];
 
 export default function OnboardingForm() {
     const [name, setName] = useState("");
     const [sector, setSector] = useState("");
     const [sizeBand, setSizeBand] = useState("");
+
+    // --- NEW: load SIC map ---
+    const [sicMap, setSicMap] = useState<Record<string, SicEntry>>({});
+    useEffect(() => {
+        let alive = true;
+        (async () => {
+            try {
+                const r = await fetch("/sic.json", { cache: "force-cache" });
+                if (!r.ok) return;
+                const j = (await r.json()) as Record<string, SicEntry>;
+                if (alive) setSicMap(j || {});
+            } catch {}
+        })();
+        return () => {
+            alive = false;
+        };
+    }, []);
+
+    // Helper to look up a code, trying zero-padding just in case
+    const lookupSic = (code?: string | null): SicEntry | null => {
+        if (!code) return null;
+        const c = code.trim();
+        return sicMap[c] || sicMap[c.padStart(5, "0")] || null;
+    };
+
+    // CH search UI
+    const [chQuery, setChQuery] = useState("");
+    const [results, setResults] = useState<ChSearchItem[]>([]);
+    const [searching, setSearching] = useState(false);
+    const [selected, setSelected] = useState<ChCompany | null>(null);
+    const [showDropdown, setShowDropdown] = useState(false);
+
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Debounce search
+    const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => {
+        if (!chQuery || selected) {
+            setResults([]);
+            setShowDropdown(false);
+            return;
+        }
+        if (debounce.current) clearTimeout(debounce.current);
+        debounce.current = setTimeout(async () => {
+            try {
+                setSearching(true);
+                const r = await fetch(`/api/companies-house/search?q=${encodeURIComponent(chQuery)}&items=8`);
+                const j = await r.json();
+                setResults(j?.items || []);
+                setShowDropdown(true);
+            } catch {
+                setResults([]);
+                setShowDropdown(false);
+            } finally {
+                setSearching(false);
+            }
+        }, 350);
+    }, [chQuery, selected]);
+
+    async function pickCompanyNumber(n: string) {
+        try {
+            const r = await fetch(`/api/companies-house/company/${encodeURIComponent(n)}`);
+            const j: ChCompany = await r.json();
+            if (j?.company_number) {
+                setSelected(j);
+
+                // If no manual name yet, adopt official
+                if (!name.trim() && j.company_name) setName(j.company_name);
+
+                // --- NEW: prefill sector from first SIC description (only if sector is empty) ---
+                if (!sector.trim() && j.sic_codes?.length) {
+                    const first = j.sic_codes[0];
+                    const hit = lookupSic(first);
+                    if (hit?.[0]) setSector(hit[0]); // description
+                }
+
+                setShowDropdown(false);
+                setResults([]);
+            }
+        } catch {}
+    }
 
     async function submit(e: React.FormEvent) {
         e.preventDefault();
         setBusy(true);
         setError(null);
-        const res = await fetch("/api/org", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, sector, sizeBand }),
-        });
-        if (!res.ok) {
+        try {
+            const body: any = { name, sector, sizeBand };
+            if (selected?.company_number) body.companyNumber = selected.company_number;
+            // Optional: also persist SIC data
+            if (selected?.sic_codes?.length) {
+                body.sicCodes = selected.sic_codes;
+                const hit = lookupSic(selected.sic_codes[0]);
+                if (hit) {
+                    body.sicPrimaryDescription = hit[0];
+                    body.sicPrimarySection = hit[1];
+                }
+            }
+            if (selected?.company_name) body.officialName = selected.company_name;
+
+            const res = await fetch("/api/org", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            if (!res.ok) throw new Error(`Couldn’t create organisation (${res.status}).`);
+            window.location.href = "/app";
+        } catch (err: any) {
+            setError(err?.message || "Something went wrong.");
             setBusy(false);
-            setError(`Couldn’t create organisation (${res.status}).`);
-            return;
         }
-        // Org created and linked. Go to dashboard.
-        window.location.href = "/app";
     }
+
+    // --- UPDATED chips: show code — description (section in tooltip) ---
+    const sicList = useMemo(
+        () =>
+            (selected?.sic_codes || []).map((code) => {
+                const hit = lookupSic(code);
+                const desc = hit?.[0];
+                const section = hit?.[1];
+                return (
+                    <span
+                        key={code}
+                        className="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs mr-1 mb-1"
+                        title={section ? `${desc} — ${section}` : desc || ""}
+                    >
+                        {code}
+                        {desc ? ` — ${desc}` : ""}
+                    </span>
+                );
+            }),
+        [selected, sicMap]
+    );
 
     return (
         <div className="mx-auto max-w-lg p-6">
             <h1 className="text-2xl font-semibold text-[var(--navy)]">Set up your organisation</h1>
-            <p className="mt-1 text-gray-700 text-sm">
-                We’ll use this to scope your survey results and reports.
-            </p>
+            <p className="mt-1 text-gray-700 text-sm">We’ll use this to scope your survey results and reports.</p>
 
-            <form onSubmit={submit} className="mt-6 space-y-4 rounded-lg border bg-white p-4">
+            <form onSubmit={submit} className="mt-6 space-y-4 rounded-lg border bg-white p-4 relative">
+                {/* Companies House search */}
+                <div className="relative">
+                    <label className="block text-sm font-medium" htmlFor="ch">Search Companies House (name or number)</label>
+                    <input
+                        id="ch"
+                        value={selected ? `${selected.company_name} (${selected.company_number})` : chQuery}
+                        onChange={(e) => { setSelected(null); setChQuery(e.target.value); }}
+                        onFocus={() => { if (results.length) setShowDropdown(true); }}
+                        placeholder="e.g. 01234567 or Acme Widgets Ltd"
+                        className="mt-1 w-full rounded border px-3 py-2"
+                        autoComplete="off"
+                    />
+
+                    {showDropdown && !selected && (
+                        <div className="absolute z-10 mt-1 w-full rounded-md border bg-white shadow">
+                            {searching && <div className="p-3 text-sm text-gray-500">Searching…</div>}
+                            {!searching && results.length === 0 && chQuery && (
+                                <div className="p-3 text-sm text-gray-500">No matches</div>
+                            )}
+                            {!searching &&
+                                results.map((it) => (
+                                    <button
+                                        type="button"
+                                        key={`${it.company_number}-${it.title}`}
+                                        onClick={() => pickCompanyNumber(it.company_number)}
+                                        className="w-full text-left p-3 hover:bg-gray-50"
+                                    >
+                                        <div className="text-sm font-medium">{it.title}</div>
+                                        <div className="text-xs text-gray-600">
+                                            {it.company_number} • {it.company_status || "status unknown"}
+                                        </div>
+                                        {it.address_snippet && <div className="text-xs text-gray-500">{it.address_snippet}</div>}
+                                    </button>
+                                ))}
+                        </div>
+                    )}
+
+                    {selected && (
+                        <div className="mt-2 rounded border p-3 bg-[var(--card)]">
+                            <div className="text-sm font-medium text-[var(--navy)]">
+                                {selected.company_name} <span className="text-gray-500">({selected.company_number})</span>
+                            </div>
+                            <div className="mt-1 text-xs text-gray-600">
+                                Status: {selected.company_status || "unknown"}
+                                {selected.date_of_creation ? ` • Since ${selected.date_of_creation}` : ""}
+                            </div>
+                            {selected.sic_codes?.length ? <div className="mt-2">{sicList}</div> : null}
+                            <button
+                                type="button"
+                                onClick={() => { setSelected(null); setChQuery(""); }}
+                                className="mt-2 text-xs underline text-[var(--primary)]"
+                            >
+                                Clear selection
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Name */}
                 <div>
                     <label className="block text-sm font-medium" htmlFor="name">Organisation name</label>
                     <input
@@ -45,8 +237,12 @@ export default function OnboardingForm() {
                         onChange={(e) => setName(e.target.value)}
                         className="mt-1 w-full rounded border px-3 py-2"
                     />
+                    {selected?.company_name && name.trim() !== selected.company_name && (
+                        <p className="mt-1 text-xs text-gray-500">Official: {selected.company_name}</p>
+                    )}
                 </div>
 
+                {/* Sector (auto-filled if possible, still editable) */}
                 <div>
                     <label className="block text-sm font-medium" htmlFor="sector">Sector (optional)</label>
                     <input
@@ -57,14 +253,25 @@ export default function OnboardingForm() {
                     />
                 </div>
 
+                {/* Size band (your dropdown from earlier) */}
                 <div>
-                    <label className="block text-sm font-medium" htmlFor="size">Size band (optional)</label>
-                    <input
+                    <label className="block text-sm font-medium" htmlFor="size">
+                        Size band (number of employees)
+                    </label>
+                    <select
                         id="size"
                         value={sizeBand}
                         onChange={(e) => setSizeBand(e.target.value)}
-                        className="mt-1 w-full rounded border px-3 py-2"
-                    />
+                        className="mt-1 w-full rounded border px-3 py-2 bg-white"
+                    >
+                        <option value="">Select a size band…</option>
+                        <option value="micro: 1-9">micro: 1-9</option>
+                        <option value="small: 10-50">small: 10 - 50</option>
+                        <option value="medium: 51-250">medium: 51-250</option>
+                        <option value="large medium big: 251-500">large medium big: 251-500</option>
+                        <option value="large big: 501-5000">large big: 501-5000</option>
+                        <option value="large very big: >5000">large very big: &gt;5000</option>
+                    </select>
                 </div>
 
                 {error && <p className="text-sm text-amber-700">{error}</p>}
