@@ -7,10 +7,22 @@ import { auth } from "@/lib/auth";
 import { col } from "@/lib/db";
 
 function safeTo(to: string | null): string {
-    // allow only same-origin *relative* paths
+    // only allow same-origin relative paths
     if (!to) return "/app";
     if (!to.startsWith("/") || to.startsWith("//")) return "/app";
     return to;
+}
+
+function requestOrigin(req: Request): string {
+    const h = req.headers;
+    const proto =
+        h.get("x-forwarded-proto") ??
+        (process.env.NODE_ENV === "production" ? "https" : "http");
+    const host =
+        h.get("x-forwarded-host") ??
+        h.get("host") ??
+        (process.env.APP_BASE_URL ? new URL(process.env.APP_BASE_URL).host : "localhost:3000");
+    return `${proto}://${host}`;
 }
 
 export async function GET(req: Request) {
@@ -26,7 +38,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Bad org id" }, { status: 400 });
     }
 
-    // Validate membership (in users.orgId[] OR orgMembers)
+    // Validate membership (users.orgId[] OR orgMembers)
     const users = await col("users");
     const orgMembers = await col("orgMembers");
 
@@ -34,20 +46,19 @@ export async function GET(req: Request) {
         { _id: new ObjectId(userId), orgId: { $in: [new ObjectId(org)] } },
         { projection: { _id: 1 } }
     );
-
     const inMembers = await orgMembers.findOne(
         { userId: String(userId), orgId: String(org) },
         { projection: { _id: 1 } }
     );
-
     if (!inUsers && !inMembers) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Use a RELATIVE redirect so the current host is preserved
-    const res = NextResponse.redirect(to);
+    // Build absolute URL using forwarded headers so host/proto are correct in prod
+    const absoluteTo = new URL(to, requestOrigin(req));
+    const res = NextResponse.redirect(absoluteTo);
 
-    // httpOnly cookie; server can read it via cookies() in getOrgContext
+    // httpOnly cookie so client JS can’t tamper; read via cookies() server-side
     res.cookies.set("di_org", String(org), {
         path: "/",
         sameSite: "lax",
