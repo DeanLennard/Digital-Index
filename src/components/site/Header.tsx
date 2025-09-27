@@ -52,6 +52,13 @@ export function Header() {
         setMobileOpen(false);
     }, [pathname]);
 
+    useEffect(() => {
+        if (!mobileOpen) return;
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => { document.body.style.overflow = prev; };
+    }, [mobileOpen]);
+
     const isActive = (href: string) =>
         href === "/"
             ? pathname === "/"
@@ -173,21 +180,19 @@ export function Header() {
 
             {/* Mobile drawer */}
             {mobileOpen && (
-                <div className="md:hidden">
+                <div className="fixed inset-0 z-[100] md:hidden">
                     {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 z-50 bg-black/20"
+                    <button
+                        aria-label="Close menu"
+                        className="absolute inset-0 bg-black/30"
                         onClick={() => setMobileOpen(false)}
                     />
                     {/* Panel */}
-                    <div className="fixed right-0 top-0 bottom-0 z-50 w-[85%] max-w-sm bg-white border-l shadow-xl p-4 overflow-y-auto">
+                    <div className="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white border-l shadow-xl p-4 overflow-y-auto">
                         <div className="flex items-center justify-between">
-                            <span className="font-semibold text-[var(--navy)]">
-                                Menu
-                            </span>
+                            <span className="font-semibold text-[var(--navy)]">Menu</span>
                             <button
                                 className="p-2 rounded border hover:bg-gray-50"
-                                aria-label="Close menu"
                                 onClick={() => setMobileOpen(false)}
                             >
                                 <X className="h-5 w-5" />

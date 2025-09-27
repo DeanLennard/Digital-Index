@@ -1,4 +1,7 @@
 import { Inter } from "next/font/google";
+import Script from "next/script";
+import { HubSpotButtons } from "@/components/HubSpotButtons";
+
 const inter = Inter({ subsets: ["latin"] });
 
 import Providers from "@/components/providers/Providers";
@@ -17,7 +20,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en">
             <body className="antialiased bg-[var(--bg)] text-[var(--fg)]">
                 <Providers>{children}</Providers>
-                <script type="text/javascript" id="hs-script-loader" async defer src="//js-eu1.hs-scripts.com/146972073.js"></script>
+                <Script
+                    id="hs-script-loader"
+                    strategy="afterInteractive"
+                    src="https://js-eu1.hs-scripts.com/146972073.js"
+                />
+                <HubSpotButtons />
             </body>
         </html>
     );
