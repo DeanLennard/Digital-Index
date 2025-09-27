@@ -327,7 +327,7 @@ export async function POST(req: Request) {
 
                     await sendBrandedEmail({
                         to: email,
-                        subject: "Welcome to Digital Index — Premium",
+                        subject: "Welcome to Digital Index - Premium",
                         html:`
                           <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 16px;">
@@ -467,7 +467,7 @@ export async function POST(req: Request) {
 
                     await sendBrandedEmail({
                         to: toEmail,
-                        subject: `Your Digital Index receipt — ${amountStr}`,
+                        subject: `Your Digital Index receipt - ${amountStr}`,
                         html,
                     });
                 } else {
