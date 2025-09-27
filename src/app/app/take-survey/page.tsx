@@ -5,6 +5,7 @@ import { col } from "@/lib/db";
 import { isPremium } from "@/lib/subscriptions";
 import UpgradeGate from "@/components/billing/UpgradeGate";
 import TakeSurveyClient from "./take-survey.client";
+import { getActiveQuestions } from "@/lib/surveys";
 
 function addDays(d: Date, days: number) {
     const x = new Date(d); x.setDate(x.getDate() + days); return x;
@@ -25,7 +26,6 @@ export default async function TakeSurveyPage() {
 
     const hasBaseline = !!baseline;
 
-    // Free users who already used their one report:
     if (!premium && hasBaseline) {
         return (
             <UpgradeGate
@@ -35,15 +35,13 @@ export default async function TakeSurveyPage() {
         );
     }
 
-    // Premium logic
     const lastSurveyDate = (lastQuarterly?.createdAt as Date) || (baseline?.createdAt as Date) || null;
     const now = new Date();
-
     const nextQuarterlyAt = lastSurveyDate ? addDays(new Date(lastSurveyDate), 90) : null;
     const quarterlyUnlocked = hasBaseline && (!!nextQuarterlyAt ? nextQuarterlyAt <= now : true);
-
-    // Decide mode + lock state for the client
     const mode: "baseline" | "quarterly" = hasBaseline ? "quarterly" : "baseline";
+
+    const questions = await getActiveQuestions();
 
     return (
         <TakeSurveyClient
@@ -51,6 +49,7 @@ export default async function TakeSurveyPage() {
             premium={premium}
             locked={mode === "quarterly" ? !quarterlyUnlocked : false}
             nextDate={nextQuarterlyAt ? nextQuarterlyAt.toISOString() : null}
+            questions={questions}
         />
     );
 }

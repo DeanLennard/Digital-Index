@@ -1,17 +1,16 @@
 // src/app/app/take-survey/take-survey.client.tsx
 "use client";
 import { SurveyForm } from "@/components/SurveyForm";
+import type { DbQuestion } from "@/lib/surveys";
 
 export default function TakeSurveyClient({
-                                             mode,
-                                             premium,
-                                             locked,
-                                             nextDate,
+                                             mode, premium, locked, nextDate, questions,
                                          }: {
     mode: "baseline" | "quarterly";
     premium: boolean;
     locked: boolean;
     nextDate: string | null;
+    questions: DbQuestion[];
 }) {
     async function handleSubmit(answers: Record<string, number>) {
         if (mode === "quarterly" && locked) {
@@ -19,12 +18,8 @@ export default function TakeSurveyClient({
             return;
         }
 
-        const endpoint =
-            mode === "baseline" ? "/api/surveys/baseline" : "/api/surveys/quarterly";
-
-        // ✅ baseline needs { type: "baseline", answers }, quarterly needs { answers }
-        const payload =
-            mode === "baseline" ? { type: "baseline", answers } : { answers };
+        const endpoint = mode === "baseline" ? "/api/surveys/baseline" : "/api/surveys/quarterly";
+        const payload = mode === "baseline" ? { type: "baseline", answers } : { answers };
 
         const res = await fetch(endpoint, {
             method: "POST",
@@ -35,19 +30,14 @@ export default function TakeSurveyClient({
 
         if (!res.ok) {
             const msg = await res.text().catch(() => "");
-            // 402 = payment required (free plan gate), 409 = baseline already done
-            if (res.status === 402) {
-                alert("Upgrade to run more surveys.");
-            } else if (res.status === 409) {
-                alert("Baseline already completed — use the quarterly reassessment.");
-            } else {
-                alert(`Couldn’t save survey (${res.status}). ${msg}`);
-            }
+            if (res.status === 402) alert("Upgrade to run more surveys.");
+            else if (res.status === 409) alert("Baseline already completed — use the quarterly reassessment.");
+            else alert(`Couldn’t save survey (${res.status}). ${msg}`);
             return;
         }
 
         const data = await res.json();
-        window.location.href = `/app/reports?surveyId=${data.surveyId}`;
+        window.location.href = `/app/reports/pdf/${data.surveyId}`;
     }
 
     return (
@@ -66,7 +56,7 @@ export default function TakeSurveyClient({
             </div>
 
             <div className={locked ? "pointer-events-none opacity-60" : ""}>
-                <SurveyForm onSubmit={handleSubmit} />
+                <SurveyForm questions={questions} onSubmit={handleSubmit} />
             </div>
         </div>
     );

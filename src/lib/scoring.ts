@@ -1,8 +1,10 @@
 // src/lib/scoring.ts
 import { AnswerSchema } from "./zod";
 import { levelForScore, type Level } from "@/lib/levels";
+import { col } from "@/lib/db";
+import { ObjectId } from "mongodb";
 
-/** 15 questions mapped to 5 categories (3 per) */
+/** 15 questions mapped to 5 categories (3 per) – legacy only */
 export const CATEGORIES = {
     collaboration: ["q1", "q2", "q3"],
     security: ["q4", "q5", "q6"],
@@ -13,10 +15,11 @@ export const CATEGORIES = {
 
 export type CategoryKey = keyof typeof CATEGORIES;
 
-/** Strict score shape used throughout (0–5, 0.1 increments) */
 export type Scores = Record<CategoryKey, number>;
 
-/** Calculate per-category (rounded to 0.1) and overall total (0.1). */
+export const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** LEGACY: q1..q15 averaging by fixed map */
 export function calcScores(answers: Record<string, number>): { scores: Scores; total: number } {
     AnswerSchema.parse(answers);
 
@@ -37,7 +40,72 @@ export function calcScores(answers: Record<string, number>): { scores: Scores; t
     return { scores, total };
 }
 
-const round1 = (n: number) => Math.round(n * 10) / 10;
+/* ──────────── DB-driven scoring (new, backward-compatible) ──────────── */
+
+type Cat = "collaboration" | "security" | "financeOps" | "salesMarketing" | "skillsCulture";
+const FIVE_STEP = [0, 1.25, 2.5, 3.75, 5];
+
+export function normaliseFive(v: unknown): number {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return 0;
+    // exact legacy 0..5 integers
+    if ([0,1,2,3,4,5].includes(n)) return n;
+    // radio index 0..4 → 0..5
+    if (n >= 0 && n <= 4) return FIVE_STEP[Math.round(n)];
+    // radio 1..5 → 0..5
+    if (n >= 1 && n <= 5) return FIVE_STEP[Math.round(n) - 1];
+    // fallback clamp
+    return Math.max(0, Math.min(5, n));
+}
+
+/**
+ * New path: score from answers keyed by Mongo _id.
+ * Assumes a questions collection with { _id, cat, version?, active? }.
+ */
+export async function calcScoresFromIds(
+    answersById: Record<string, number>
+): Promise<{
+    scores: Scores;
+    total: number;
+    questionIds: ObjectId[];
+    questionVersion: number;
+}> {
+    const ids = Object.keys(answersById).filter(ObjectId.isValid).map((id) => new ObjectId(id));
+    const zero: Scores = { collaboration: 0, security: 0, financeOps: 0, salesMarketing: 0, skillsCulture: 0 };
+    if (!ids.length) return { scores: zero, total: 0, questionIds: [], questionVersion: 1 };
+
+    const qcol = await col("questions");
+    const qs = await qcol.find({ _id: { $in: ids }, active: { $ne: false } }).toArray();
+
+    const buckets: Record<Cat, number[]> = {
+        collaboration: [], security: [], financeOps: [], salesMarketing: [], skillsCulture: [],
+    };
+
+    for (const q of qs) {
+        const raw = answersById[String(q._id)];
+        const v = normaliseFive(raw);
+        const cat: Cat = q.cat; // ensure your schema has cat as one of Cat
+        if (buckets[cat]) buckets[cat].push(v);
+    }
+
+    const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0);
+
+    const scores: Scores = {
+        collaboration: round1(avg(buckets.collaboration)),
+        security: round1(avg(buckets.security)),
+        financeOps: round1(avg(buckets.financeOps)),
+        salesMarketing: round1(avg(buckets.salesMarketing)),
+        skillsCulture: round1(avg(buckets.skillsCulture)),
+    };
+    const total = round1(
+        (scores.collaboration + scores.security + scores.financeOps + scores.salesMarketing + scores.skillsCulture) / 5
+    );
+
+    const questionIds = qs.map((q) => q._id as ObjectId);
+    const questionVersion = Math.max(...qs.map((q) => q.version ?? 1), 1);
+
+    return { scores, total, questionIds, questionVersion };
+}
 
 /* ──────────────────────────────────────────────────────────────────────────
    Action recommendations (Top 3) – simple, transparent rules engine

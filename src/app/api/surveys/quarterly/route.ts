@@ -1,50 +1,11 @@
 // src/app/api/surveys/quarterly/route.ts
 export const runtime = "nodejs";
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
-import { unlockedQuarterly, calcScores, top3ActionsFrom } from "@/lib/scoring";
+import { calcScores, calcScoresFromIds, top3ActionsFrom, unlockedQuarterly } from "@/lib/scoring";
 import { SurveyAnswersOnlySchema } from "@/lib/zod";
-import { getLatestBenchmark, calcDeltas } from "@/lib/benchmarks";
-
-async function upsertReportForSurvey(surveyId: ObjectId, orgId: string, userId: string) {
-    const surveys = await col("surveys");
-    const reports = await col("reports");
-
-    const survey = await surveys.findOne({ _id: surveyId });
-    if (!survey) return;
-
-    // Build summary (actions + benchmark deltas)
-    const bench = await getLatestBenchmark();
-    const deltas = bench ? calcDeltas(survey.scores as any, bench.mapping as any) : null;
-
-    const summary = {
-        topActions: top3ActionsFrom(survey.scores as any),
-        deltas,
-        benchmark: bench ? { year: bench.year, source: bench.source } : null,
-    };
-
-    // Stub pdf URL until your S3/PDF pipeline is wired
-    const pdfUrl = `/app/reports/pdf/${surveyId.toString()}`;
-
-    // One report per survey (unique index on { surveyId: 1 })
-    await reports.updateOne(
-        { surveyId },
-        {
-            $set: {
-                orgId,
-                userId,
-                surveyId,
-                pdfUrl,
-                summary,
-                updatedAt: new Date(),
-            },
-            $setOnInsert: { createdAt: new Date() },
-        },
-        { upsert: true }
-    );
-}
+import { createReportForSurvey } from "@/lib/reports";
 
 export async function POST(req: Request) {
     const { orgId, userId } = await getOrgContext();
@@ -62,23 +23,41 @@ export async function POST(req: Request) {
         return new NextResponse("Locked", { status: 403 });
     }
 
-    // Validate body and score
-    const { answers } = SurveyAnswersOnlySchema.parse(await req.json());
-    const { scores, total } = calcScores(answers);
+    const body = await req.json();
+    const parsed = SurveyAnswersOnlySchema.parse(body);
 
-    // Save survey
-    const { insertedId } = await surveys.insertOne({
-        orgId,
-        userId,
-        type: "quarterly",
-        answers,
-        scores,
-        total,
+    let scores, total, answersToStore, answerFormat: "legacy" | "byId" = "legacy";
+    let questionIds: any[] | undefined, questionVersion: number | undefined;
+
+    const byId = (parsed as any).answersById ?? (
+        (parsed as any).answers && !Object.keys((parsed as any).answers).every((k: string) => /^q\d+$/.test(k))
+            ? (parsed as any).answers
+            : null
+    );
+
+    if (byId) {
+        const r = await calcScoresFromIds(byId);
+        scores = r.scores; total = r.total;
+        questionIds = r.questionIds; questionVersion = r.questionVersion;
+        answersToStore = byId; answerFormat = "byId";
+    } else {
+        const legacy = (parsed as any).answers;
+        const r = calcScores(legacy);
+        scores = r.scores; total = r.total;
+        answersToStore = legacy; answerFormat = "legacy";
+    }
+
+    const { insertedId } = await (await col("surveys")).insertOne({
+        orgId, userId, type: "quarterly",
+        answers: answersToStore,
+        answerFormat,
+        questionIds,
+        questionVersion,
+        scores, total,
         createdAt: new Date(),
     });
 
-    // ✅ Immediately create/merge the report row for this survey
-    await upsertReportForSurvey(insertedId, orgId, userId);
+    await createReportForSurvey(insertedId.toString(), { orgId, userId });
 
     return NextResponse.json({ surveyId: insertedId.toString(), scores, total });
 }

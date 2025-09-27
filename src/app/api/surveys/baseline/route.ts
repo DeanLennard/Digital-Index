@@ -5,8 +5,9 @@ import { NextResponse } from "next/server";
 import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
 import { SurveyCreateSchema } from "@/lib/zod";
-import { calcScores } from "@/lib/scoring";
+import { calcScores, calcScoresFromIds } from "@/lib/scoring";
 import { isPremium } from "@/lib/subscriptions";
+import { createReportForSurvey } from "@/lib/reports";
 
 export async function POST(req: Request) {
     const { orgId, userId } = await getOrgContext();
@@ -34,20 +35,44 @@ export async function POST(req: Request) {
         );
     }
 
-    // Create the first baseline
-    const { answers } = SurveyCreateSchema.parse(await req.json());
-    const { scores, total } = calcScores(answers);
+    const body = await req.json();
+    // Zod now allows both shapes
+    const parsed = SurveyCreateSchema.parse(body);
+
+    let scores, total, answersToStore, answerFormat: "legacy" | "byId" = "legacy";
+    let questionIds: any[] | undefined, questionVersion: number | undefined;
+
+    // Support 3 possibilities
+    const byId = (parsed as any).answersById ?? (
+        (parsed as any).answers && !Object.keys((parsed as any).answers).every((k: string) => /^q\d+$/.test(k))
+            ? (parsed as any).answers
+            : null
+    );
+
+    if (byId) {
+        const r = await calcScoresFromIds(byId);
+        scores = r.scores; total = r.total;
+        questionIds = r.questionIds; questionVersion = r.questionVersion;
+        answersToStore = byId; answerFormat = "byId";
+    } else {
+        const legacy = (parsed as any).answers;
+        const r = calcScores(legacy);
+        scores = r.scores; total = r.total;
+        answersToStore = legacy; answerFormat = "legacy";
+    }
 
     const now = new Date();
-    const { insertedId } = await surveys.insertOne({
-        orgId,
-        userId,
-        type: "baseline",
-        answers,
-        scores,
-        total,
+    const { insertedId } = await (await col("surveys")).insertOne({
+        orgId, userId, type: "baseline",
+        answers: answersToStore,
+        answerFormat,
+        questionIds,
+        questionVersion,
+        scores, total,
         createdAt: now,
     });
+
+    await createReportForSurvey(insertedId.toString(), { orgId, userId });
 
     return NextResponse.json({ surveyId: insertedId.toString(), scores, total });
 }
