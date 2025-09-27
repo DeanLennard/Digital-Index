@@ -20,12 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en">
             <body className="antialiased bg-[var(--bg)] text-[var(--fg)]">
                 <Providers>{children}</Providers>
-                <Script
-                    id="hs-script-loader"
-                    strategy="afterInteractive"
-                    src="https://js-eu1.hs-scripts.com/146972073.js"
-                />
-                <HubSpotButtons />
             </body>
         </html>
     );
