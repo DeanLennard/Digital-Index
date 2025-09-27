@@ -14,6 +14,7 @@ import AuthButtons from "@/components/site/AuthButtons";
 import "@/styles/theme.css";
 import "@/app/globals.css";
 import OrgSwitcherServer from "@/components/app/OrgSwitcherServer";
+import Image from 'next/image'
 
 export const metadata: Metadata = {
     title: { default: "Digital Index", template: "%s - Digital Index" },
@@ -49,7 +50,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <header className="sticky top-0 z-40 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b">
                 <div className="mx-auto max-w-6xl h-14 px-4 sm:px-6 flex items-center justify-between">
                     <Link href="/app" className="font-semibold text-[var(--navy)] tracking-tight">
-                        Digital Index
+                        <Image
+                            src="/DigitalIndex.svg"
+                            alt="Digital Index"
+                            width={192}
+                            height={32}
+                            priority
+                            unoptimized
+                        />
                     </Link>
 
                     <OrgSwitcherServer currentOrgId={orgId} />

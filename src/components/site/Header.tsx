@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import AuthButtons from "@/components/site/AuthButtons";
 import { ChevronDown, Menu, X } from "lucide-react";
+import Image from 'next/image'
 
 const primaryNav = [
     { href: "/how-it-works", label: "How it works" },
@@ -74,7 +75,14 @@ export function Header() {
                         href="/"
                         className="font-semibold text-[var(--navy)] tracking-tight"
                     >
-                        Digital Index
+                        <Image
+                            src="/DigitalIndex.svg"
+                            alt="Digital Index"
+                            width={192}
+                            height={32}
+                            priority
+                            unoptimized
+                        />
                     </Link>
                 </div>
 
@@ -174,9 +182,9 @@ export function Header() {
                     {/* Panel */}
                     <div className="fixed right-0 top-0 bottom-0 z-50 w-[85%] max-w-sm bg-white border-l shadow-xl p-4 overflow-y-auto">
                         <div className="flex items-center justify-between">
-              <span className="font-semibold text-[var(--navy)]">
-                Menu
-              </span>
+                            <span className="font-semibold text-[var(--navy)]">
+                                Menu
+                            </span>
                             <button
                                 className="p-2 rounded border hover:bg-gray-50"
                                 aria-label="Close menu"
