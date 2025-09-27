@@ -5,6 +5,9 @@ export const dynamic = "force-dynamic";
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { col } from "@/lib/db";
+import { ObjectId } from "mongodb";
+import { sendBrandedEmail } from "@/lib/resend";
+import { receiptHtml } from "@/emails/receipt-html";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2025-08-27.basil",
@@ -22,6 +25,33 @@ type SubDoc = {
     createdAt?: Date;
     updatedAt: Date;
 };
+
+async function upsertInvoice(inv: any, orgId: string | null): Promise<{ created: boolean }> {
+    const invoices = await col("invoices");
+    const doc = {
+        orgId,
+        stripeInvoiceId: inv.id as string,
+        number: (inv.number as string) ?? null,
+        currency: (inv.currency as string) ?? "gbp",
+        amountPaid: typeof inv.amount_paid === "number" ? inv.amount_paid : 0,
+        hostedInvoiceUrl: (inv.hosted_invoice_url as string) ?? null,
+        invoicePdf: (inv.invoice_pdf as string) ?? null,
+        periodStart: inv?.lines?.data?.[0]?.period?.start ? new Date(inv.lines.data[0].period.start * 1000) : null,
+        periodEnd:   inv?.lines?.data?.[0]?.period?.end   ? new Date(inv.lines.data[0].period.end   * 1000) : null,
+        createdAt: new Date((inv.created as number) * 1000),
+        status: (inv.status as string) ?? "paid",
+    };
+
+    const r = await invoices.updateOne(
+        { stripeInvoiceId: doc.stripeInvoiceId },
+        { $set: doc, $setOnInsert: { insertedAt: new Date() } },
+        { upsert: true }
+    );
+
+    // Upserted means "newly created" (idempotent on retries)
+    const created = !!(r as any).upsertedId;
+    return { created };
+}
 
 function unixToDate(n?: number | null) {
     return typeof n === "number" ? new Date(n * 1000) : null;
@@ -179,6 +209,43 @@ async function upsertSubscription(payload: SubDoc) {
     }
 }
 
+function formatAmount(minor: number, currency: string) {
+    try {
+        return new Intl.NumberFormat("en-GB", {
+            style: "currency",
+            currency: (currency || "gbp").toUpperCase(),
+            currencyDisplay: "symbol",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format((minor || 0) / 100);
+    } catch {
+        // fallback
+        return `£${((minor || 0) / 100).toFixed(2)}`;
+    }
+}
+function fmtDate(d?: Date | null) {
+    return d ? new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "";
+}
+
+async function findOrgEmailForReceipt(orgId: string | null, stripeEmail?: string | null) {
+    // Preference: Stripe invoice/customer email
+    if (stripeEmail) return stripeEmail;
+
+    if (!orgId) return null;
+
+    const members = await col("orgMembers");
+    const users   = await col("users");
+
+    // Prefer owner; fallback to admin; else any member
+    const owner  = await members.findOne({ orgId, role: "owner" });
+    const admin  = owner ? null : await members.findOne({ orgId, role: "admin" });
+    const anyMem = owner || admin || await members.findOne({ orgId });
+
+    if (!anyMem?.userId) return null;
+    const u = await users.findOne({ _id: new ObjectId(anyMem.userId) }, { projection: { email: 1 } as any });
+    return (u?.email as string | undefined) || null;
+}
+
 export async function POST(req: Request) {
     const sig = req.headers.get("stripe-signature");
     console.log("[stripe] webhook hit, sig present:", !!sig);
@@ -244,6 +311,29 @@ export async function POST(req: Request) {
                 willCancelAt: dates.willCancelAt,
                 updatedAt: new Date(),
             });
+            try {
+                const s = event.data.object as Stripe.Checkout.Session;
+                const orgId = s.metadata?.orgId ?? null;
+                const email = s.customer_details?.email || (typeof s.customer === "string"
+                    ? ((await stripe.customers.retrieve(s.customer)) as any)?.email
+                    : null);
+
+                if (email) {
+                    await sendBrandedEmail({
+                        to: email,
+                        subject: "Welcome to Digital Index — Premium",
+                        html: `
+                          <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">
+                            <h2 style="margin:0 0 8px;color:#0f172a">You're all set 🎉</h2>
+                            <p style="margin:0 0 12px;color:#334155">Thanks for upgrading to <strong>Premium</strong>. You now have monthly pulses, action nudges and exports.</p>
+                            <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://www.digitalindex.co.uk"}/app" style="display:inline-block;background:#0ea5e9;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none">Go to your dashboard</a>
+                          </div>
+                        `,
+                    });
+                }
+            } catch (e) {
+                console.warn("[resend] welcome email failed:", e);
+            }
             break;
         }
 
@@ -312,6 +402,62 @@ export async function POST(req: Request) {
             if (!subId) break;
 
             const sub = await stripe.subscriptions.retrieve(subId, { expand: ["items.data.price"] });
+
+            // Look up our subscription row to find orgId
+            const subsCol = await col("subscriptions");
+            const subRow  = await subsCol.findOne<{ orgId?: string | null }>({ stripeSubscriptionId: sub.id });
+            const orgId   = subRow?.orgId ?? null;
+
+            const { created } = await upsertInvoice(inv, orgId);
+
+            // Compose + send branded receipt email (Resend)
+            const currency  = inv.currency || (sub.items?.data?.[0]?.price?.currency as string) || "gbp";
+            const amountStr = formatAmount(inv.amount_paid ?? inv.amount_due ?? 0, currency);
+
+            const pStart = inv?.lines?.data?.[0]?.period?.start ? new Date(inv.lines.data[0].period.start * 1000) : null;
+            const pEnd   = inv?.lines?.data?.[0]?.period?.end   ? new Date(inv.lines.data[0].period.end   * 1000) : null;
+
+            // Resolve org name (nice touch)
+            let orgName: string | null = null;
+            if (orgId) {
+                const orgs = await col("orgs");
+                const o = await orgs.findOne({ _id: new ObjectId(orgId) }, { projection: { name: 1 } as any });
+                orgName = (o?.name as string) ?? null;
+            }
+
+            // Pick best email to send to
+            if (created) {
+                // Pick best recipient
+                let toEmail = (inv.customer_email as string | null) ?? null;
+                if (!toEmail && typeof inv.customer === "string") {
+                    try {
+                        const cust = await stripe.customers.retrieve(inv.customer);
+                        toEmail = (cust as any)?.email ?? null;
+                    } catch {}
+                }
+                if (!toEmail) {
+                    toEmail = await findOrgEmailForReceipt(orgId, null);
+                }
+
+                if (toEmail) {
+                    const html = receiptHtml({
+                        orgName,
+                        amount: amountStr,
+                        period: pStart && pEnd ? `${fmtDate(pStart)} – ${fmtDate(pEnd)}` : null,
+                        invoiceNumber: inv.number || null,
+                        invoiceUrl: inv.hosted_invoice_url || null,
+                        pdfUrl: inv.invoice_pdf || null,
+                    });
+
+                    await sendBrandedEmail({
+                        to: toEmail,
+                        subject: `Your Digital Index receipt — ${amountStr}`,
+                        html,
+                    });
+                } else {
+                    console.warn("[resend] No recipient email found for invoice", inv.id);
+                }
+            }
 
             // Prefer invoice’s line period end; fall back to subscription, then computed
             const endFromInvoice = inv?.lines?.data?.[0]?.period?.end ?? null;
