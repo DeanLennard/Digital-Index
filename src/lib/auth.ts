@@ -4,6 +4,7 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { mongo } from "@/lib/db";
 import Google from "next-auth/providers/google";
 import ResendProvider from "next-auth/providers/resend";
+import {brandAsset} from "@/lib/brand";
 
 const AUTH_RESEND_KEY = process.env.AUTH_RESEND_KEY || process.env.RESEND_API_KEY || "";
 
@@ -32,16 +33,32 @@ export const {
                 const apiKey = (provider as any).apiKey || AUTH_RESEND_KEY;
                 const from = String((provider as any).from || FROM).trim();
 
+                const logoUrl = brandAsset("/DigitalIndex.png"); // 300×50 file
+                const logoWidth = 150;  // displayed size
+                const logoHeight = 25;
+
                 const payload = {
                     from,
                     to: identifier,
                     subject: `Sign in to ${host}`,
                     html: `
-            <p>Hi,</p>
-            <p>Click the button below to sign in to <strong>${host}</strong>.</p>
-            <p><a href="${url}" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#2F5DFF;color:#fff;text-decoration:none">Sign in</a></p>
-            <p>If you didn’t request this, you can ignore this email.</p>
-          `,
+                          <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 16px;">
+                              <tr>
+                                <td>
+                                  <img src="${logoUrl}" alt="Digital Index" width="${logoWidth}" height="${logoHeight}"
+                                       style="display:block;height:${logoHeight}px;width:${logoWidth}px;border:0;outline:none;text-decoration:none;" />
+                                </td>
+                              </tr>
+                            </table>
+                            
+                            <h2 style="margin:0 0 8px;color:#0f172a">Hi,</h2>
+                            <p style="margin:0 0 12px;color:#334155">Click the button below to sign in to <strong>${host}</strong>.</p>
+                            <p><a href="${url}" style="display:inline-block;padding:10px 16px;border-radius:8px;background:#2F5DFF;color:#fff;text-decoration:none">Sign in</a></p>
+                            <p style="margin:0 0 12px;color:#334155">If you didn’t request this, you can ignore this email.</p>
+                            
+                            <p style="margin:8px 0 0;color:#64748b;font-size:12px">Need help? Use our web chat.</p>
+                          </div>`,
                     text: `Sign in to ${host}\n${url}\n`,
                 };
 

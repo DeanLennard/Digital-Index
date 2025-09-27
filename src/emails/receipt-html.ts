@@ -42,6 +42,6 @@ export function receiptHtml(params: {
         </div>
       ` : ""}
     </div>
-    <p style="margin:8px 0 0;color:#64748b;font-size:12px">Need help? Reply to this email.</p>
+    <p style="margin:8px 0 0;color:#64748b;font-size:12px">Need help? Use our web chat.</p>
   </div>`;
 }

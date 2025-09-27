@@ -1,4 +1,6 @@
 // src/app/api/stripe/webhook/route.ts
+import {brandAsset} from "@/lib/brand";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -319,16 +321,30 @@ export async function POST(req: Request) {
                     : null);
 
                 if (email) {
+                    const logoUrl = brandAsset("/DigitalIndex.png"); // 300×50 file
+                    const logoWidth = 150;  // displayed size
+                    const logoHeight = 25;
+
                     await sendBrandedEmail({
                         to: email,
                         subject: "Welcome to Digital Index — Premium",
-                        html: `
+                        html:`
                           <div style="font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 0 16px;">
+                              <tr>
+                                <td>
+                                  <img src="${logoUrl}" alt="Digital Index" width="${logoWidth}" height="${logoHeight}"
+                                       style="display:block;height:${logoHeight}px;width:${logoWidth}px;border:0;outline:none;text-decoration:none;" />
+                                </td>
+                              </tr>
+                            </table>
+                            
                             <h2 style="margin:0 0 8px;color:#0f172a">You're all set 🎉</h2>
                             <p style="margin:0 0 12px;color:#334155">Thanks for upgrading to <strong>Premium</strong>. You now have monthly pulses, action nudges and exports.</p>
                             <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://www.digitalindex.co.uk"}/app" style="display:inline-block;background:#0ea5e9;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none">Go to your dashboard</a>
-                          </div>
-                        `,
+                            
+                            <p style="margin:8px 0 0;color:#64748b;font-size:12px">Need help? Use our web chat.</p>
+                          </div>`,
                     });
                 }
             } catch (e) {
