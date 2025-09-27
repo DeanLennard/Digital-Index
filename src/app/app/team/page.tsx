@@ -2,15 +2,16 @@
 export const runtime = "nodejs";
 
 import { redirect } from "next/navigation";
+import { ObjectId } from "mongodb";
 import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
 import TeamClient from "./team.client";
 
-type Member = { userId: string; role: "owner"|"admin"|"member"; email?: string; name?: string };
+type Member = { userId: string; role: "owner"|"admin"|"member"; email?: string | null; name?: string | null };
 type Invite = { email: string; role: "owner"|"admin"|"member"; token: string; expiresAt?: Date };
 
-// DB shapes (may include extra fields you don't pass to the UI)
-type MemberDoc = Member & { orgId: string };
+// DB shapes
+type MemberDoc = { orgId: string; userId: string; role: "owner"|"admin"|"member" };
 type InviteDoc = Invite & { orgId: string; status: "pending"|"accepted"|"revoked" };
 
 export default async function TeamPage() {
@@ -20,22 +21,56 @@ export default async function TeamPage() {
 
     const membersCol = await col<MemberDoc>("orgMembers");
     const invitesCol = await col<InviteDoc>("invites");
+    const usersCol   = await col("users");
 
-    // Members in this org
+    // 1) Org members (userId + role)
     const memberDocs = await membersCol
-        .find({ orgId }, { projection: { _id: 0, userId: 1, role: 1, email: 1, name: 1 } })
+        .find({ orgId }, { projection: { _id: 0, userId: 1, role: 1 } })
         .toArray();
-    const members: Member[] = memberDocs.map(({ userId, role, email, name }) => ({
-        userId, role, email, name,
+
+    // 2) Join to users to get email/name
+    const uniqueUserIds = Array.from(
+        new Set(
+            memberDocs
+                .map(m => m.userId)
+                .filter(id => typeof id === "string" && ObjectId.isValid(id))
+        )
+    );
+
+    const userDocs = uniqueUserIds.length
+        ? await usersCol
+            .find(
+                { _id: { $in: uniqueUserIds.map(id => new ObjectId(id)) } },
+                { projection: { email: 1, name: 1 } }
+            )
+            .toArray()
+        : [];
+
+    const userMap = new Map(
+        userDocs.map((u: any) => [
+            String(u._id),
+            { email: u.email?.toLowerCase() ?? null, name: u.name ?? null },
+        ])
+    );
+
+    const members: Member[] = memberDocs.map(m => ({
+        userId: m.userId,
+        role: m.role,
+        email: userMap.get(m.userId)?.email ?? null,
+        name: userMap.get(m.userId)?.name ?? null,
     }));
 
-    // Pending invites
+    // 3) Pending invites
     const inviteDocs = await invitesCol
         .find({ orgId, status: "pending" }, { projection: { _id: 0, email: 1, role: 1, token: 1, expiresAt: 1 } })
         .sort({ createdAt: -1 })
         .toArray();
+
     const invites: Invite[] = inviteDocs.map(({ email, role, token, expiresAt }) => ({
-        email, role, token, expiresAt,
+        email: email.toLowerCase(),
+        role,
+        token,
+        expiresAt,
     }));
 
     return <TeamClient me={userId} members={members} invites={invites} />;

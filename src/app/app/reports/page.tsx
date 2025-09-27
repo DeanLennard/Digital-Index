@@ -7,6 +7,22 @@ import { ObjectId } from "mongodb";
 import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
 
+// --- helpers for "27th Sept 2025" ---
+function ordinal(n: number) {
+    const s = ["th","st","nd","rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+function formatReportDate(d: Date | string) {
+    const date = new Date(d);
+    const day = ordinal(date.getDate());
+    const m = date.getMonth();
+    const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"];
+    const month = MONTHS[m] ?? "";
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+}
+
 export default async function ReportsPage({
                                               searchParams,
                                           }: {
@@ -43,8 +59,7 @@ export default async function ReportsPage({
                     {survey ? (
                         <>
                             <p className="text-sm text-gray-700">
-                                Survey <code>{surveyId}</code> captured on{" "}
-                                {new Date(survey.createdAt).toLocaleString()}.
+                                Survey captured on <b>{formatReportDate(survey.createdAt)}</b>.
                             </p>
                             <div className="mt-3 flex gap-3">
                                 <Link
@@ -63,33 +78,34 @@ export default async function ReportsPage({
                 </div>
             )}
 
-            <h2 className="mt-8 text-lg font-semibold text-[var(--navy)]">
-                Recent reports
-            </h2>
+            <h2 className="mt-8 text-lg font-semibold text-[var(--navy)]">Recent reports</h2>
 
             {recentReports.length === 0 ? (
                 <p className="mt-2 text-gray-700 text-sm">No reports yet.</p>
             ) : (
                 <ul className="mt-3 divide-y rounded-lg border bg-white">
-                    {recentReports.map((r: any) => (
-                        <li key={r._id} className="p-4 flex items-center justify-between">
-                            <div className="text-sm">
-                                <div className="font-medium">Report {r._id.toString()}</div>
-                                <div className="text-gray-600">
-                                    Survey {r.surveyId?.toString()} •{" "}
-                                    {new Date(r.createdAt).toLocaleString()}
+                    {recentReports.map((r: any) => {
+                        const created = r?.createdAt ? formatReportDate(r.createdAt) : "—";
+                        return (
+                            <li key={r._id} className="p-4 flex items-center justify-between">
+                                <div className="text-sm">
+                                    <div className="font-medium">Report {created}</div>
+                                    <div className="text-gray-600">
+                                        {/* keep survey id for traceability if helpful; remove if you don't want it */}
+                                        Survey {r.type} • {created}
+                                    </div>
                                 </div>
-                            </div>
-                            {r.surveyId ? (
-                                <Link
-                                    href={`/app/reports/pdf/${r.surveyId.toString()}`}
-                                    className="text-sm text-[var(--primary)] underline"
-                                >
-                                    View printable
-                                </Link>
-                            ) : null}
-                        </li>
-                    ))}
+                                {r.surveyId ? (
+                                    <Link
+                                        href={`/app/reports/pdf/${r.surveyId.toString()}`}
+                                        className="text-sm text-[var(--primary)] underline"
+                                    >
+                                        View printable
+                                    </Link>
+                                ) : null}
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
         </div>
