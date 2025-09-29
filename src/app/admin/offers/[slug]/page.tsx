@@ -36,7 +36,8 @@ export default async function EditOfferPage({ params }: { params: Promise<{ slug
                     </label>
                     <label className="text-sm">Status
                         <select name="status" defaultValue={offer.status} className="mt-1 w-full rounded border px-2 py-1">
-                            <option>active</option><option>paused</option>
+                            <option value="active">active</option>
+                            <option value="paused">paused</option>
                         </select>
                     </label>
                     <label className="text-sm">Priority
@@ -69,10 +70,19 @@ export default async function EditOfferPage({ params }: { params: Promise<{ slug
                 </label>
 
                 <div className="flex items-center gap-3 pt-2">
-                    <button className="rounded-md bg-[var(--primary)] text-white text-sm px-4 py-2">Save</button>
-                    <form action={async () => { "use server"; await deleteOffer(slug); }} >
-                        <button className="rounded-md border text-sm px-4 py-2" type="submit">Delete</button>
-                    </form>
+                    <button
+                        className="rounded-md bg-[var(--primary)] text-white text-sm px-4 py-2"
+                        formAction={async (fd) => { "use server"; await updateOffer(slug, fd); }}
+                    >
+                        Save
+                    </button>
+
+                    <button
+                        className="rounded-md border text-sm px-4 py-2"
+                        formAction={async () => { "use server"; await deleteOffer(slug); }}
+                    >
+                        Delete
+                    </button>
                 </div>
             </form>
         </div>
