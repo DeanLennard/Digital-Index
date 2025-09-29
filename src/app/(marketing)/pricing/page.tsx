@@ -119,7 +119,6 @@ const rows = [
     { feature: "Benchmark Updates", free: "—", pro: "✅ Quarterly + updates" },
     { feature: "Guides Library", free: "—", pro: "✅ Level-specific, growing monthly" },
     { feature: "Team Access", free: "—", pro: "✅ Unlimited invites" },
-    { feature: "CSV/PDF Exports", free: "—", pro: "✅ Included" },
 ];
 
 export default function PricingPage() {
