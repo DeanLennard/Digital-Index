@@ -33,8 +33,8 @@ export default function CompareBars({
                             <div className="mb-1 flex items-baseline justify-between">
                                 <span className="text-sm font-medium text-gray-800">{LABELS[k]}</span>
                                 <span className={`text-xs ${pos ? "text-green-600" : neg ? "text-amber-600" : "text-gray-500"}`}>
-                  {pos ? "↑" : neg ? "↓" : "•"} {Math.abs(delta).toFixed(1)}
-                </span>
+                                    {pos ? "↑" : neg ? "↓" : "•"} {Math.abs(delta).toFixed(1)}
+                                </span>
                             </div>
 
                             {/* bar track */}

@@ -10,6 +10,7 @@ import type { CategoryKey } from "@/lib/scoring";
 import { levelForScore, type Level } from "@/lib/levels";
 import PulseTrend from "@/components/charts/PulseTrend";
 import ProgressSinceBaseline from "@/components/reports/ProgressSinceBaseline";
+import BenchmarkRadar from "@/components/charts/BenchmarkRadar";
 
 const LEVEL_LABEL: Record<Level, string> = {
     foundation: "Foundation",
@@ -162,8 +163,8 @@ export default async function AppHome() {
                                         <span className="text-gray-400">vs</span>
                                         <span>{fmt(uk)}</span>
                                         <span className={colour}>
-                      {d == null ? "—" : (<>{sign} {Math.abs(d).toFixed(1)}</>)}
-                    </span>
+                                            {d == null ? "—" : (<>{sign} {Math.abs(d).toFixed(1)}</>)}
+                                        </span>
                                     </div>
                                 </div>
                             );
@@ -190,9 +191,9 @@ export default async function AppHome() {
                                         "—"
                                     ) : (
                                         <span className={totalColour}>
-                      {totalDelta > 0 ? "↑" : totalDelta < 0 ? "↓" : "•"}{" "}
+                                            {totalDelta > 0 ? "↑" : totalDelta < 0 ? "↓" : "•"}{" "}
                                             {Math.abs(totalDelta).toFixed(1)}
-                    </span>
+                                        </span>
                                     )}
                                 </div>
                             </>
@@ -202,6 +203,14 @@ export default async function AppHome() {
             )}
 
             <div className="space-y-6">
+                {latestSurvey && bench ? (
+                    <BenchmarkRadar
+                        you={latestSurvey.scores as any}
+                        bench={bench.mapping as any}
+                        caption={`${bench.source} ${bench.year}`}
+                    />
+                ) : null}
+
                 {orgId && <ProgressSinceBaseline orgId={orgId} />}
 
                 {/* Pulse trend */}
