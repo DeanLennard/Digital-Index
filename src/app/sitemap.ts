@@ -19,7 +19,7 @@ const STATIC_PATHS = [
     // "/app/take-survey",
 ];
 
-export const revalidate = 60 * 60 * 24; // re-generate daily (optional)
+export const revalidate = 86400; // re-generate daily (optional)
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const base =
