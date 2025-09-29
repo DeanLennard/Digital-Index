@@ -15,6 +15,7 @@ import "@/styles/theme.css";
 import "@/app/globals.css";
 import OrgSwitcherServer from "@/components/app/OrgSwitcherServer";
 import Image from 'next/image'
+import SpecialistCTA from "@/components/app/SpecialistCTA";
 
 export const metadata: Metadata = {
     title: { default: "Digital Index", template: "%s - Digital Index" },
@@ -97,6 +98,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                             </Link>
                         </div>
                     )}
+                    <SpecialistCTA premium={premium} />
                 </aside>
 
                 <main id="main" className="col-span-12 md:col-span-9 lg:col-span-9">
