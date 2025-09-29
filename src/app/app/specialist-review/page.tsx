@@ -12,9 +12,10 @@ const PACKAGES = [
 export default async function SpecialistReviewPage({
                                                        searchParams,
                                                    }: {
-    searchParams?: { submitted?: string };
+    searchParams?: Promise<{ submitted?: string }>;
 }) {
-    const submitted = searchParams?.submitted === "1";
+    const sp = (await searchParams) ?? {};
+    const submitted = sp.submitted === "1";
 
     return (
         <div className="space-y-6">
