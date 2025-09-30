@@ -1,3 +1,4 @@
+// src/lib/consent.ts
 export type Consent = {
     necessary: true;         // always true (not configurable)
     analytics: boolean;

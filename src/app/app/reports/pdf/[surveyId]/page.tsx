@@ -7,6 +7,7 @@ import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
 import ScoresBars from "./ScoresBars";
 import { getLatestBenchmark, calcDeltas } from "@/lib/benchmarks";
+import BenchmarkRadar from "@/components/charts/BenchmarkRadar";
 
 export default async function PdfPage(
     props: { params: Promise<{ surveyId: string }> }
@@ -96,6 +97,17 @@ export default async function PdfPage(
                         </tr>
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* Radar/spider chart (same as dashboard) */}
+            {bench && (
+                <div className="mt-8">
+                    <BenchmarkRadar
+                        you={s.scores as any}
+                        bench={bench.mapping as any}
+                        caption={`${bench.source} ${bench.year}`}
+                    />
                 </div>
             )}
 
