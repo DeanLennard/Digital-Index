@@ -30,7 +30,7 @@ export function receiptHtml(params: {
     </table>
 
     <h2 style="margin:0 0 8px;color:#0f172a">Thanks for your payment</h2>
-    <p style="margin:0 0 12px;color:#334155">${orgName ? orgName + " — " : ""}Your Digital Index subscription receipt.</p>
+    <p style="margin:0 0 12px;color:#334155">${orgName ? orgName + " - " : ""}Your Digital Index subscription receipt.</p>
     <div style="border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin:16px 0;background:#ffffff">
       <p style="margin:0 0 6px;color:#475569">Amount paid</p>
       <p style="margin:0 0 8px;font-weight:600;font-size:18px;color:#0f172a">${amount}</p>

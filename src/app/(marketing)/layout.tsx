@@ -8,8 +8,8 @@ import AnalyticsLoader from "@/components/AnalyticsLoader";
 
 export const metadata: Metadata = {
     title: {
-        default: "Digital Index — Know your SME’s digital score",
-        template: "%s — Digital Index",
+        default: "Digital Index - Know your SME’s digital score",
+        template: "%s - Digital Index",
     },
     description: "Know your SME’s digital score. Track progress. Get clear next actions.",
     metadataBase: new URL(process.env.NEXTAUTH_URL || "https://www.digitalindex.co.uk"),

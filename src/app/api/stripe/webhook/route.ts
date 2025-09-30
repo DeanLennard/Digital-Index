@@ -202,7 +202,7 @@ async function upsertSubscription(payload: SubDoc) {
         { upsert: true }
     );
 
-    // Optional: ensure one sub per org — if we now know orgId, remove stale rows for that org
+    // Optional: ensure one sub per org - if we now know orgId, remove stale rows for that org
     if (payload.orgId) {
         await subs.deleteMany({
             orgId: payload.orgId,

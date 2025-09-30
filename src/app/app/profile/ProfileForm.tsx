@@ -119,10 +119,10 @@ export default function ProfileForm({ initialOrg }: Props) {
                     <span
                         key={code}
                         className="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs mr-1 mb-1"
-                        title={section ? `${desc} — ${section}` : desc || ""}
+                        title={section ? `${desc} - ${section}` : desc || ""}
                     >
             {code}
-                        {desc ? ` — ${desc}` : ""}
+                        {desc ? ` - ${desc}` : ""}
           </span>
                 );
             }),

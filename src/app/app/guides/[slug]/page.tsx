@@ -22,7 +22,7 @@ export async function generateMetadata({
 }) {
     const { slug } = await params;     // ← await it
     const guide = await getGuide(slug);
-    return { title: guide ? `${guide.title} — Guide` : "Guide" };
+    return { title: guide ? `${guide.title} - Guide` : "Guide" };
 }
 
 type Step = { title: string; detail?: string };
@@ -211,7 +211,7 @@ export default async function GuidePage({
                     </ul>
 
                     <p className="mt-3 text-xs text-gray-500">
-                        We may earn a commission if you click and purchase — at no extra cost to you.
+                        We may earn a commission if you click and purchase - at no extra cost to you.
                     </p>
                 </section>
             )}

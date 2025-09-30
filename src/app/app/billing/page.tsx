@@ -46,7 +46,7 @@ export default async function BillingPage({
 
     const note =
         sp?.status === "success"
-            ? "Payment successful — thanks!"
+            ? "Payment successful - thanks!"
             : sp?.status === "cancelled"
                 ? "Checkout cancelled."
                 : null;
@@ -54,7 +54,7 @@ export default async function BillingPage({
     const isPremium = sub?.plan === "premium";
 
     const renew =
-        sub?.renewsAt ? new Date(sub.renewsAt).toLocaleDateString() : "—";
+        sub?.renewsAt ? new Date(sub.renewsAt).toLocaleDateString() : "-";
 
     const willCancel =
         sub?.willCancelAt ? new Date(sub.willCancelAt).toLocaleDateString() : null;
@@ -76,13 +76,13 @@ export default async function BillingPage({
                     <div>
                         <p className="text-sm text-gray-600">Current plan</p>
                         <p className="text-lg font-semibold">
-                            {isPremium ? "Premium — £39/mo" : "Free"}
+                            {isPremium ? "Premium - £39/mo" : "Free"}
                         </p>
                     </div>
                     <div className="text-right">
                         <p className="text-sm text-gray-600">Status</p>
                         <p className="text-lg font-semibold">
-                            {sub?.status ?? (isPremium ? "active" : "—")}
+                            {sub?.status ?? (isPremium ? "active" : "-")}
                         </p>
                     </div>
                 </div>
@@ -141,9 +141,9 @@ export default async function BillingPage({
                                     <td className="py-2">
                                         {inv.periodStart && inv.periodEnd
                                             ? `${new Date(inv.periodStart).toLocaleDateString()} – ${new Date(inv.periodEnd).toLocaleDateString()}`
-                                            : "—"}
+                                            : "-"}
                                     </td>
-                                    <td className="py-2">{inv.number || "—"}</td>
+                                    <td className="py-2">{inv.number || "-"}</td>
                                     <td className="py-2">{fmtMoney(inv.amountPaid || 0, inv.currency || "GBP")}</td>
                                     <td className="py-2 capitalize">{inv.status || "paid"}</td>
                                     <td className="py-2">
@@ -152,7 +152,7 @@ export default async function BillingPage({
                                         ) : inv.hostedInvoiceUrl ? (
                                             <a className="text-[var(--primary)] underline" href={inv.hostedInvoiceUrl} target="_blank" rel="noreferrer">View invoice</a>
                                         ) : (
-                                            <span className="text-gray-400">—</span>
+                                            <span className="text-gray-400">-</span>
                                         )}
                                     </td>
                                 </tr>

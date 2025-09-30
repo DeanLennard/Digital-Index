@@ -14,7 +14,7 @@ export default async function ProfilePage() {
 
     const { orgId } = await getOrgContext();
     if (!orgId) {
-        // No org chosen yet — nudge to create one
+        // No org chosen yet - nudge to create one
         return (
             <div className="mx-auto max-w-3xl p-6">
                 <h1 className="text-2xl font-semibold text-[var(--navy)]">Your organisation</h1>

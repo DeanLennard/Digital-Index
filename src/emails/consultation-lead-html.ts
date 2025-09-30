@@ -39,13 +39,13 @@ export function consultationLeadHtml(params: {
       <p style="margin:6px 0;color:#0f172a">${org}</p>
 
       <p style="margin:12px 0 0;color:#475569"><strong>Package</strong></p>
-      <p style="margin:6px 0;color:#0f172a">${packageName} — ${packagePrice}</p>
+      <p style="margin:6px 0;color:#0f172a">${packageName} - ${packagePrice}</p>
 
       <p style="margin:12px 0 0;color:#475569"><strong>Preferred timing</strong></p>
-      <p style="margin:6px 0;color:#0f172a">${when || "—"}</p>
+      <p style="margin:6px 0;color:#0f172a">${when || "-"}</p>
 
       <p style="margin:12px 0 0;color:#475569"><strong>Notes</strong></p>
-      <p style="margin:6px 0;color:#0f172a;white-space:pre-wrap">${notes || "—"}</p>
+      <p style="margin:6px 0;color:#0f172a;white-space:pre-wrap">${notes || "-"}</p>
 
       <div style="margin-top:14px">
         <a href="${adminListUrl}" style="display:inline-block;background:#0ea5e9;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none">

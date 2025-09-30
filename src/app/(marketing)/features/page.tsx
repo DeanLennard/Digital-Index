@@ -1,44 +1,120 @@
 // src/app/(marketing)/features/page.tsx
 import Link from "next/link";
+import Image from "next/image";
+import type { Metadata } from "next";
 
 export const dynamic = "force-static";
 
-export const metadata = {
-    title: "Features – Digital Index for SMEs",
+const siteUrl = "https://www.digitalindex.co.uk";
+const pageUrl = `${siteUrl}/features`;
+const ogImage = `${siteUrl}/Digital-Index-Snapshot.png`;
+
+export const metadata: Metadata = {
+    title: "Features - SME Digital Health Check, UK Benchmark & Monthly Nudges | Digital Index",
     description:
-        "Measure your small business’s digital maturity in minutes. Get a free baseline snapshot, tailored actions, monthly nudges, and benchmarks across five pillars.",
+        "Measure your small business’s digital maturity in minutes. Free baseline snapshot, tailored actions, monthly nudges, trends and UK SME benchmarks across five pillars.",
     keywords: [
-        "SME digital assessment",
-        "digital maturity for small business",
-        "digital audit",
-        "small business benchmark",
-        "UK SME digital index",
-        "cyber hygiene",
-        "collaboration tools",
-        "finance operations automation",
-        "sales and marketing enablement",
-        "workforce digital skills",
+        "digital health check for SMEs",
+        "digital maturity assessment UK",
+        "SME digital readiness score",
+        "UK SME benchmark",
+        "small business digital audit",
     ],
-    alternates: { canonical: "https://www.digitalindex.co.uk/features" },
+    alternates: { canonical: pageUrl },
     openGraph: {
-        title: "Features – Digital Index for SMEs",
+        title: "Features - SME Digital Health Check, UK Benchmark & Monthly Nudges | Digital Index",
         description:
-            "Free baseline snapshot, tailored actions, and ongoing tracking across five digital pillars.",
-        url: "https://www.digitalindex.co.uk/features",
+            "Free baseline snapshot, tailored actions, and ongoing tracking across five digital pillars for UK SMEs.",
+        url: pageUrl,
         siteName: "Digital Index",
         type: "website",
+        images: [{ url: ogImage, width: 1200, height: 630, alt: "Digital Index snapshot preview" }],
     },
     twitter: {
         card: "summary_large_image",
-        title: "Features – Digital Index for SMEs",
+        title: "Features - SME Digital Health Check, UK Benchmark & Monthly Nudges | Digital Index",
         description:
             "Measure your SME’s digital maturity in minutes and improve it every month.",
+        images: [ogImage],
+    },
+    other: {
+        "theme-color": "#2F5DFF",
     },
 };
 
+// Structured data: BreadcrumbList + Product(SoftwareApplication) + ItemList (features)
+function JsonLd() {
+    const json = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "BreadcrumbList",
+                "@id": `${pageUrl}#breadcrumbs`,
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Home", "item": siteUrl },
+                    { "@type": "ListItem", "position": 2, "name": "Features", "item": pageUrl }
+                ]
+            },
+            {
+                "@type": "Product",
+                "@id": `${pageUrl}#product`,
+                "name": "Digital Index",
+                "description":
+                    "Digital maturity assessment and improvement platform for SMEs. Get a free baseline snapshot and upgrade for ongoing tracking.",
+                "brand": { "@type": "Brand", "name": "Digital Index" },
+                "category": "SoftwareApplication",
+                "offers": [
+                    {
+                        "@type": "Offer",
+                        "price": "0.00",
+                        "priceCurrency": "GBP",
+                        "name": "Free Snapshot",
+                        "url": `${siteUrl}/app/take-survey`,
+                        "availability": "https://schema.org/InStock"
+                    },
+                    {
+                        "@type": "Offer",
+                        "price": "39.00",
+                        "priceCurrency": "GBP",
+                        "name": "Premium (Monthly)",
+                        "url": `${siteUrl}/pricing`,
+                        "availability": "https://schema.org/InStock"
+                    }
+                ]
+            },
+            {
+                "@type": "ItemList",
+                "@id": `${pageUrl}#features`,
+                "name": "Digital Index features",
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Free baseline snapshot" },
+                    { "@type": "ListItem", "position": 2, "name": "Tailored next actions" },
+                    { "@type": "ListItem", "position": 3, "name": "Monthly nudges" },
+                    { "@type": "ListItem", "position": 4, "name": "Benchmarks & trends" },
+                    { "@type": "ListItem", "position": 5, "name": "Quarterly reassessments" },
+                    { "@type": "ListItem", "position": 6, "name": "Team friendly" }
+                ]
+            }
+        ]
+    };
+
+    const jsonLd = JSON.stringify(json)
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/&/g, "\\u0026");
+
+    return (
+        <script
+            type="application/ld+json"
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
+    );
+}
+
 const pillars = [
     {
-        key: "collaboration",
+        anchor: "collaboration",
         title: "Collaboration",
         bullets: [
             "Tooling fit & adoption (email, docs, chat, meetings)",
@@ -46,7 +122,7 @@ const pillars = [
         ],
     },
     {
-        key: "security",
+        anchor: "security",
         title: "Security",
         bullets: [
             "Passwords & MFA, device protection, backups",
@@ -54,7 +130,7 @@ const pillars = [
         ],
     },
     {
-        key: "financeOps",
+        anchor: "finance-ops",
         title: "Finance & Ops",
         bullets: [
             "Digital invoicing & expenses, integrations",
@@ -62,7 +138,7 @@ const pillars = [
         ],
     },
     {
-        key: "salesMarketing",
+        anchor: "sales-marketing",
         title: "Sales & Marketing",
         bullets: [
             "Website basics & analytics, lead capture",
@@ -70,7 +146,7 @@ const pillars = [
         ],
     },
     {
-        key: "skillsCulture",
+        anchor: "skills-culture",
         title: "Skills & Culture",
         bullets: [
             "Digital confidence & training cadence",
@@ -80,62 +156,33 @@ const pillars = [
 ];
 
 export default function FeaturesPage() {
-    const productLd = {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: "Digital Index",
-        description:
-            "Digital maturity assessment and improvement platform for SMEs. Get a free baseline snapshot and upgrade for ongoing tracking.",
-        brand: { "@type": "Brand", name: "Digital Index" },
-        offers: [
-            {
-                "@type": "Offer",
-                price: "0",
-                priceCurrency: "GBP",
-                name: "Free Snapshot",
-                url: "https://www.digitalindex.co.uk/app/take-survey",
-            },
-            {
-                "@type": "Offer",
-                price: "39.00",
-                priceCurrency: "GBP",
-                name: "Premium (Monthly)",
-                url: "https://www.digitalindex.co.uk/pricing",
-                availability: "https://schema.org/InStock",
-            },
-        ],
-    };
-
     return (
         <section>
-            {/* JSON-LD for SEO */}
-            <script
-                type="application/ld+json"
-                suppressHydrationWarning
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }}
-            />
+            <JsonLd />
 
             {/* Hero */}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 md:py-24">
                 <div className="grid lg:grid-cols-2 gap-10 items-center">
                     <div>
                         <h1 className="text-4xl md:text-5xl font-semibold text-[var(--navy)] leading-tight">
-                            Features that help SMEs measure and improve—digital maturity.
+                            Features for SMEs - measure your digital maturity and improve it every month.
                         </h1>
                         <p className="mt-4 text-lg text-gray-700 max-w-prose">
-                            Take a concise survey to get your digital score across five pillars. Download a
-                            free PDF snapshot, then upgrade for trends, benchmarks, and monthly action
-                            nudges that keep your business moving.
+                            Take a concise <strong>digital health check</strong> to get your{" "}
+                            <strong>digital readiness score</strong> across five pillars. Download a free PDF snapshot,
+                            then upgrade for <strong>UK SME benchmarks</strong>, trends and monthly action nudges that keep you moving.
                         </p>
                         <div className="mt-8 flex flex-wrap gap-3">
                             <Link
                                 href="/app/take-survey"
+                                aria-label="Start your free SME digital health check"
                                 className="inline-flex items-center rounded-md px-5 py-3 text-sm font-medium text-white bg-[var(--primary)] hover:opacity-90"
                             >
                                 Get your free snapshot
                             </Link>
                             <Link
                                 href="/how-it-works"
+                                aria-label="Learn how the Digital Index works"
                                 className="inline-flex items-center rounded-md px-5 py-3 text-sm font-medium border"
                             >
                                 How it works
@@ -143,7 +190,7 @@ export default function FeaturesPage() {
                         </div>
                         <ul className="mt-6 grid sm:grid-cols-2 gap-2 text-sm text-gray-600">
                             <li>• No credit card required</li>
-                            <li>• 10-15 minutes, plain English</li>
+                            <li>• 10–15 minutes, plain English</li>
                             <li>• Benchmarked vs UK SME average</li>
                             <li>• Clear next actions (top 3)</li>
                         </ul>
@@ -151,10 +198,32 @@ export default function FeaturesPage() {
 
                     <div className="rounded-xl bg-white shadow-sm p-4 border">
                         <div className="aspect-[16/10] w-full rounded-md bg-[var(--bg)] grid place-items-center text-gray-500">
-                            <img src="/Digital-Index-Snapshot.png" alt="Snapshot preview" title="Snapshot preview" />
+                            <Image
+                                src="/Digital-Index-Snapshot.png"
+                                alt="Snapshot preview showing category scores and UK SME benchmark"
+                                title="Snapshot preview"
+                                width={1200}
+                                height={750}
+                                priority={false}
+                            />
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Jump links to pillars */}
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+                <nav aria-label="Pillars" className="mb-6">
+                    <ul className="flex flex-wrap gap-3 text-sm">
+                        {pillars.map((p) => (
+                            <li key={p.anchor}>
+                                <a href={`#${p.anchor}`} className="underline">
+                                    {p.title}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
             </div>
 
             {/* Five Pillars */}
@@ -162,11 +231,11 @@ export default function FeaturesPage() {
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
                     <h2 className="text-2xl font-semibold text-[var(--navy)]">The five pillars</h2>
                     <p className="mt-2 text-gray-700 max-w-prose">
-                        We score the essentials SMEs rely on every day—so you know where to focus first.
+                        We score the essentials SMEs rely on every day - so you know where to focus first.
                     </p>
                     <div className="mt-6 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {pillars.map((p) => (
-                            <div key={p.key} className="p-5 rounded-lg border bg-[var(--card)]">
+                            <div id={p.anchor} key={p.anchor} className="p-5 rounded-lg border bg-[var(--card)] scroll-mt-24">
                                 <h3 className="font-medium text-[var(--navy)]">{p.title}</h3>
                                 <ul className="mt-2 text-sm text-gray-700 list-disc list-inside space-y-1">
                                     {p.bullets.map((b) => (
@@ -186,10 +255,10 @@ export default function FeaturesPage() {
                     {[
                         {
                             t: "Free baseline snapshot",
-                            d: "Your current score by pillar + a digital snapshot to share.",
+                            d: "Your current score by pillar plus a shareable PDF snapshot.",
                         },
                         {
-                            t: "Tailored next actions",
+                            t: "Tailoured next actions",
                             d: "We suggest the top 3 improvements that will move the needle fastest.",
                         },
                         {
@@ -277,6 +346,7 @@ export default function FeaturesPage() {
                     <div className="mt-6">
                         <Link
                             href="/app/take-survey"
+                            aria-label="Get your free SME digital snapshot"
                             className="inline-flex items-center rounded-md px-6 py-3 text-sm font-medium text-white bg-[var(--primary)] hover:opacity-90"
                         >
                             Get your free snapshot

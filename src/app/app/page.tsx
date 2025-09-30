@@ -96,14 +96,14 @@ export default async function AppHome() {
                     <div className="rounded-lg border bg-white p-4">
                         <p className="text-xs text-gray-500">Overall score</p>
                         <p className="mt-1 text-2xl font-semibold">
-                            {latestSurvey ? (latestSurvey.total as number).toFixed(1) : "—"}
+                            {latestSurvey ? (latestSurvey.total as number).toFixed(1) : "-"}
                         </p>
                     </div>
 
                     <div className="rounded-lg border bg-white p-4">
                         <p className="text-xs text-gray-500">Next pulse check</p>
                         <p className="mt-1 text-2xl font-semibold">
-                            {nextPulseDate ? nextPulseDate.toLocaleDateString() : "—"}
+                            {nextPulseDate ? nextPulseDate.toLocaleDateString() : "-"}
                         </p>
                     </div>
 
@@ -135,7 +135,7 @@ export default async function AppHome() {
                     {(() => {
                         const num = (x: any): number | null =>
                             typeof x === "number" && !Number.isNaN(x) ? x : null;
-                        const fmt = (x: number | null) => (x == null ? "—" : x.toFixed(1));
+                        const fmt = (x: number | null) => (x == null ? "-" : x.toFixed(1));
 
                         const catRows = ([
                             ["Collaboration", "collaboration"],
@@ -163,7 +163,7 @@ export default async function AppHome() {
                                         <span className="text-gray-400">vs</span>
                                         <span>{fmt(uk)}</span>
                                         <span className={colour}>
-                                            {d == null ? "—" : (<>{sign} {Math.abs(d).toFixed(1)}</>)}
+                                            {d == null ? "-" : (<>{sign} {Math.abs(d).toFixed(1)}</>)}
                                         </span>
                                     </div>
                                 </div>
@@ -188,7 +188,7 @@ export default async function AppHome() {
                                     Overall: <strong>{fmt(totalSelf)}</strong> vs UK{" "}
                                     <strong>{fmt(totalBench)}</strong>{" "}
                                     {totalDelta == null ? (
-                                        "—"
+                                        "-"
                                     ) : (
                                         <span className={totalColour}>
                                             {totalDelta > 0 ? "↑" : totalDelta < 0 ? "↓" : "•"}{" "}

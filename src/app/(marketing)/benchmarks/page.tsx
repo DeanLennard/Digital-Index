@@ -1,178 +1,171 @@
 // src/app/(marketing)/benchmarks/page.tsx
 import Link from "next/link";
+import Image from "next/image";
+import type { Metadata } from "next";
 
 export const dynamic = "force-static";
 
-export const metadata = {
-    title: "Benchmarks – SME Digital Index",
-    description:
-        "See how small and mid-sized businesses compare across five digital pillars: Collaboration, Security, Finance & Ops, Sales & Marketing, and Skills & Culture.",
-    keywords: [
-        "SME digital benchmarks",
-        "small business digital maturity",
-        "UK SME benchmarks",
-        "digital audit benchmark",
-        "cyber hygiene benchmark",
-        "collaboration tools benchmark",
-        "sales and marketing benchmark",
-    ],
-    alternates: { canonical: "https://www.digitalindex.co.uk/benchmarks" },
-    openGraph: {
-        title: "Benchmarks – SME Digital Index",
-        description:
-            "Compare your business to UK SME averages across five digital pillars. Updated quarterly.",
-        url: "https://www.digitalindex.co.uk/benchmarks",
-        siteName: "Digital Index",
-        type: "website",
-    },
-    twitter: {
-        card: "summary_large_image",
-        title: "Benchmarks - SME Digital Index",
-        description:
-            "See where your SME stands today and track improvement over time.",
-    },
-};
+const siteUrl = "https://www.digitalindex.co.uk";
+const pageUrl = `${siteUrl}/benchmarks`;
+const ogImage = `${siteUrl}/benchmarks.png`;
 
 // --- Replace these numbers as your dataset grows (illustrative defaults) ---
 const overall = { mean: 54, p25: 40, median: 54, p75: 67, n: 184 };
 const pillars = [
-    {
-        key: "collaboration",
-        title: "Collaboration",
-        mean: 58,
-        n: 184,
-        desc: "Email, documents, chat/meetings, file hygiene, and light automation.",
-    },
-    {
-        key: "security",
-        title: "Security",
-        mean: 52,
-        n: 184,
-        desc: "Passwords & MFA, device protection, backups, staff awareness.",
-    },
-    {
-        key: "financeOps",
-        title: "Finance & Ops",
-        mean: 55,
-        n: 181,
-        desc: "Digital invoicing & expenses, integrations, process clarity.",
-    },
-    {
-        key: "salesMarketing",
-        title: "Sales & Marketing",
-        mean: 49,
-        n: 176,
-        desc: "Website basics, analytics, CRM hygiene, simple automations.",
-    },
-    {
-        key: "skillsCulture",
-        title: "Skills & Culture",
-        mean: 54,
-        n: 173,
-        desc: "Digital confidence, training cadence, ownership of improvements.",
-    },
+    { key: "collaboration", title: "Collaboration", mean: 58, n: 184, desc: "Email, documents, chat/meetings, file hygiene, and light automation." },
+    { key: "security", title: "Security", mean: 52, n: 184, desc: "Passwords & MFA, device protection, backups, staff awareness." },
+    { key: "financeOps", title: "Finance & Ops", mean: 55, n: 181, desc: "Digital invoicing & expenses, integrations, process clarity." },
+    { key: "salesMarketing", title: "Sales & Marketing", mean: 49, n: 176, desc: "Website basics, analytics, CRM hygiene, simple automations." },
+    { key: "skillsCulture", title: "Skills & Culture", mean: 54, n: 173, desc: "Digital confidence, training cadence, ownership of improvements." },
 ];
 
-export default function BenchmarksPage() {
+export const metadata: Metadata = {
+    title: "UK SME Digital Benchmarks - Compare Your Digital Maturity | Digital Index",
+    description:
+        "See how UK SMEs score across five digital pillars: Collaboration, Security, Finance & Ops, Sales & Marketing, and Skills & Culture. Updated quarterly. Benchmark your score.",
+    keywords: [
+        "UK SME digital benchmarks",
+        "SME digital maturity benchmark",
+        "small business digital benchmark UK",
+        "digital audit benchmark",
+        "cyber hygiene benchmark",
+    ],
+    alternates: { canonical: pageUrl },
+    openGraph: {
+        title: "UK SME Digital Benchmarks - Compare Your Digital Maturity | Digital Index",
+        description:
+            "Compare your business to UK SME averages across five digital pillars. Updated quarterly.",
+        url: pageUrl,
+        siteName: "Digital Index",
+        type: "website",
+        images: [{ url: ogImage, width: 1200, height: 630, alt: "Digital Index benchmarks preview" }],
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "UK SME Digital Benchmarks - Digital Index",
+        description: "See where your SME stands today and track improvement over time.",
+        images: [ogImage],
+    },
+    other: { "theme-color": "#2F5DFF" },
+};
+
+// Structured data: BreadcrumbList + Dataset + FAQPage
+function JsonLd() {
     const datasetLd = {
         "@context": "https://schema.org",
-        "@type": "Dataset",
-        name: "SME Digital Index Benchmarks",
-        description:
-            "Quarterly benchmarks of SME digital maturity across five pillars, based on a concise 10–15 question survey.",
-        url: "https://www.digitalindex.co.uk/benchmarks",
-        creator: {
-            "@type": "Organization",
-            name: "Digital Index",
-            url: "https://www.digitalindex.co.uk",
-        },
-        temporalCoverage: "2024-2025",
-        measurementTechnique:
-            "Questionnaire (10–15 questions) mapped to maturity levels: Foundation, Core, Advanced.",
-        variableMeasured: pillars.map((p) => ({
-            "@type": "PropertyValue",
-            name: p.title,
-            description: p.desc,
-            unitText: "score (0–100)",
-        })),
-        distribution: [
+        "@graph": [
             {
-                "@type": "DataDownload",
-                encodingFormat: "text/html",
-                contentUrl: "https://www.digitalindex.co.uk/benchmarks",
+                "@type": "BreadcrumbList",
+                "@id": `${pageUrl}#breadcrumbs`,
+                "itemListElement": [
+                    { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+                    { "@type": "ListItem", position: 2, name: "Benchmarks", item: pageUrl },
+                ],
+            },
+            {
+                "@type": "Dataset",
+                "@id": `${pageUrl}#dataset`,
+                name: "SME Digital Index Benchmarks (UK)",
+                description:
+                    "Quarterly benchmarks of SME digital maturity across five pillars, based on a concise 10–15 question survey mapped to maturity levels.",
+                url: pageUrl,
+                creator: { "@type": "Organization", name: "Digital Index", url: siteUrl },
+                temporalCoverage: "2024-2025",
+                measurementTechnique:
+                    "Questionnaire (10–15 questions) mapped to maturity levels: Foundation, Core, Advanced. Normalised to 0–100.",
+                variableMeasured: pillars.map((p) => ({
+                    "@type": "PropertyValue",
+                    name: p.title,
+                    description: p.desc,
+                    unitText: "score (0–100)",
+                })),
+                distribution: [
+                    { "@type": "DataDownload", encodingFormat: "text/html", contentUrl: pageUrl },
+                    // Optional: add CSV/JSON when available for richer Dataset signals
+                    // { "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${pageUrl}.csv` }
+                ],
+            },
+            {
+                "@type": "FAQPage",
+                "@id": `${pageUrl}#faq`,
+                mainEntity: [
+                    {
+                        "@type": "Question",
+                        name: "How often are benchmarks updated?",
+                        acceptedAnswer: {
+                            "@type": "Answer",
+                            text: "Quarterly. We aggregate anonymised survey responses from SMEs and refresh category and overall averages.",
+                        },
+                    },
+                    {
+                        "@type": "Question",
+                        name: "Is my business data public?",
+                        acceptedAnswer: {
+                            "@type": "Answer",
+                            text: "No. Individual responses are never published. Benchmarks are aggregated and anonymised.",
+                        },
+                    },
+                    {
+                        "@type": "Question",
+                        name: "Do micro-businesses skew results?",
+                        acceptedAnswer: {
+                            "@type": "Answer",
+                            text: "We aim for a representative SME mix. Over time we’ll add filters (company size, sector) in Premium to make comparisons more precise.",
+                        },
+                    },
+                ],
             },
         ],
     };
 
-    const faqLd = {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: [
-            {
-                "@type": "Question",
-                name: "How often are benchmarks updated?",
-                acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "Quarterly. We aggregate anonymised survey responses from SMEs and refresh category and overall averages.",
-                },
-            },
-            {
-                "@type": "Question",
-                name: "Is my business data public?",
-                acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "No. Individual responses are never published. Benchmarks are aggregated and anonymised.",
-                },
-            },
-            {
-                "@type": "Question",
-                name: "Do micro-businesses skew results?",
-                acceptedAnswer: {
-                    "@type": "Answer",
-                    text: "We aim for a representative SME mix. Over time we’ll add filters (company size, sector) in Premium to make comparisons more precise.",
-                },
-            },
-        ],
-    };
+    const jsonLd = JSON.stringify(datasetLd)
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/&/g, "\\u0026");
 
     return (
+        <script
+            type="application/ld+json"
+            suppressHydrationWarning
+            dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
+    );
+}
+
+export default function BenchmarksPage() {
+    return (
         <section>
-            {/* SEO structured data */}
-            <script
-                type="application/ld+json"
-                suppressHydrationWarning
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetLd) }}
-            />
-            <script
-                type="application/ld+json"
-                suppressHydrationWarning
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
-            />
+            <JsonLd />
 
             {/* Hero */}
             <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 md:py-24">
                 <div className="grid lg:grid-cols-2 gap-10 items-center">
                     <div>
                         <h1 className="text-4xl md:text-5xl font-semibold text-[var(--navy)] leading-tight">
-                            SME Digital Benchmarks
+                            UK SME Digital Benchmarks
                         </h1>
                         <p className="mt-4 text-lg text-gray-700 max-w-prose">
-                            See how your business compares across five pillars. Use the free baseline
-                            survey to get your score today, then improve with monthly nudges.
+                            See how your business compares across five digital pillars. Use the free baseline
+                            survey to get your score today, then improve with monthly nudges and quarterly reassessments.
                         </p>
                         <div className="mt-8 flex flex-wrap gap-3">
                             <Link
                                 href="/app/take-survey"
+                                aria-label="Start your free SME digital snapshot"
                                 className="inline-flex items-center rounded-md px-5 py-3 text-sm font-medium text-white bg-[var(--primary)] hover:opacity-90"
                             >
                                 Get your free snapshot
                             </Link>
                             <Link
                                 href="/how-it-works"
+                                aria-label="Learn how Digital Index works"
                                 className="inline-flex items-center rounded-md px-5 py-3 text-sm font-medium border"
                             >
                                 How it works
                             </Link>
+                            <a href="#methodology" className="inline-flex items-center rounded-md px-5 py-3 text-sm font-medium border">
+                                Methodology
+                            </a>
                         </div>
                         <ul className="mt-6 grid sm:grid-cols-2 gap-2 text-sm text-gray-600">
                             <li>• Updated quarterly</li>
@@ -184,7 +177,13 @@ export default function BenchmarksPage() {
 
                     <div className="rounded-xl bg-white shadow-sm p-4 border">
                         <div className="aspect-[16/10] w-full rounded-md bg-[var(--bg)] grid place-items-center text-gray-500">
-                            <img src="/pricing.png" alt="Benchmark preview" title="Benchmark preview" />
+                            <Image
+                                src="/pricing.png"
+                                alt="Benchmark preview showing average scores across five digital pillars"
+                                title="Benchmark preview"
+                                width={1200}
+                                height={750}
+                            />
                         </div>
                     </div>
                 </div>
@@ -195,7 +194,7 @@ export default function BenchmarksPage() {
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
                     <h2 className="text-2xl font-semibold text-[var(--navy)]">Overall distribution</h2>
                     <p className="mt-2 text-gray-700 max-w-prose">
-                        Scores are on a 0-100 scale mapped to maturity levels: Foundation, Core, Advanced.
+                        Scores are on a 0–100 scale mapped to maturity levels: Foundation, Core, Advanced.
                     </p>
 
                     <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,9 +206,7 @@ export default function BenchmarksPage() {
                         ].map((s) => (
                             <div key={s.label} className="p-5 rounded-lg border bg-[var(--card)]">
                                 <div className="text-sm text-gray-600">{s.label}</div>
-                                <div className="mt-1 text-2xl font-semibold text-[var(--navy)]">
-                                    {s.value}
-                                </div>
+                                <div className="mt-1 text-2xl font-semibold text-[var(--navy)]">{s.value}</div>
                             </div>
                         ))}
                     </div>
@@ -236,7 +233,7 @@ export default function BenchmarksPage() {
                 </div>
             </div>
 
-            {/* Methods */}
+            {/* Methodology */}
             <div className="bg-white border-t">
                 <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16" id="methodology">
                     <h2 className="text-2xl font-semibold text-[var(--navy)]">Methodology & notes</h2>
@@ -248,7 +245,7 @@ export default function BenchmarksPage() {
                             },
                             {
                                 t: "Scoring",
-                                d: "Responses map to maturity levels (Foundation/Core/Advanced). We normalise to 0-100 per pillar and compute an overall score.",
+                                d: "Responses map to maturity levels (Foundation/Core/Advanced). We normalise to 0–100 per pillar and compute an overall score.",
                             },
                             {
                                 t: "Updates",
@@ -268,6 +265,7 @@ export default function BenchmarksPage() {
                     <div className="mt-8 flex flex-wrap gap-3">
                         <Link
                             href="/app/take-survey"
+                            aria-label="Get your free SME digital snapshot"
                             className="inline-flex items-center rounded-md px-5 py-3 text-sm font-medium text-white bg-[var(--primary)] hover:opacity-90"
                         >
                             Get your free snapshot

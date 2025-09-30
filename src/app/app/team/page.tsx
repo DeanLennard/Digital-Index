@@ -1,4 +1,6 @@
 // src/app/app/team/page.tsx
+import {isPremium} from "@/lib/subscriptions";
+
 export const runtime = "nodejs";
 
 import { redirect } from "next/navigation";
@@ -18,6 +20,9 @@ export default async function TeamPage() {
     const { orgId, userId } = await getOrgContext();
     if (!userId) redirect("/signin?callbackUrl=/app");
     if (!orgId) redirect("/app/onboarding");
+
+    const premium = await isPremium(orgId);
+    if (!premium) redirect("/app/billing?status=upgrade-required");
 
     const membersCol = await col<MemberDoc>("orgMembers");
     const invitesCol = await col<InviteDoc>("invites");

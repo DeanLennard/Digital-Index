@@ -123,7 +123,7 @@ export const GUIDES: Record<string, Guide> = {
         category: "financeOps",
         estMinutes: 60,
         summary:
-            "Use your accounting tool to send polite, timed reminders — no manual chasing.",
+            "Use your accounting tool to send polite, timed reminders - no manual chasing.",
         steps: [
             { title: "Enable reminders", detail: "Configure day-offsets (e.g. due, +7, +14)." },
             { title: "Template the emails", detail: "Short, friendly copy; add payment links." },
@@ -200,7 +200,7 @@ export const GUIDES: Record<string, Guide> = {
         category: "salesMarketing",
         estMinutes: 30,
         summary:
-            "Stay top-of-mind with a short, useful update — not a heavy newsletter.",
+            "Stay top-of-mind with a short, useful update - not a heavy newsletter.",
         steps: [
             { title: "Pick a simple format", detail: "1 insight, 1 case study, 1 CTA." },
             { title: "Build a basic list", detail: "CRM segment or mailing tool with consent." },

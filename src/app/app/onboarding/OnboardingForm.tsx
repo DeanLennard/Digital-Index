@@ -142,7 +142,7 @@ export default function OnboardingForm() {
         }
     }
 
-    // --- UPDATED chips: show code — description (section in tooltip) ---
+    // --- UPDATED chips: show code - description (section in tooltip) ---
     const sicList = useMemo(
         () =>
             (selected?.sic_codes || []).map((code) => {
@@ -153,10 +153,10 @@ export default function OnboardingForm() {
                     <span
                         key={code}
                         className="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs mr-1 mb-1"
-                        title={section ? `${desc} — ${section}` : desc || ""}
+                        title={section ? `${desc} - ${section}` : desc || ""}
                     >
                         {code}
-                        {desc ? ` — ${desc}` : ""}
+                        {desc ? ` - ${desc}` : ""}
                     </span>
                 );
             }),

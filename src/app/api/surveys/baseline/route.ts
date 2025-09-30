@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const existingBaseline = await surveys.findOne({ orgId, type: "baseline" });
     if (existingBaseline) {
         return NextResponse.json(
-            { error: "Baseline already completed — use the quarterly reassessment." },
+            { error: "Baseline already completed - use the quarterly reassessment." },
             { status: 409 } // Conflict
         );
     }

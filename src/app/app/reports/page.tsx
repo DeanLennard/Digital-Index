@@ -85,7 +85,7 @@ export default async function ReportsPage({
             ) : (
                 <ul className="mt-3 divide-y rounded-lg border bg-white">
                     {recentReports.map((r: any) => {
-                        const created = r?.createdAt ? formatReportDate(r.createdAt) : "—";
+                        const created = r?.createdAt ? formatReportDate(r.createdAt) : "-";
                         return (
                             <li key={r._id} className="p-4 flex items-center justify-between">
                                 <div className="text-sm">

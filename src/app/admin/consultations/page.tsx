@@ -55,7 +55,7 @@ export default async function AdminConsultationsPage() {
                     {leads.map(l => (
                         <tr key={String(l._id)} className="align-top">
                             <td className="px-3 py-2 border-b text-gray-600">
-                                {l.createdAt ? format(new Date(l.createdAt), "yyyy-MM-dd HH:mm") : "—"}
+                                {l.createdAt ? format(new Date(l.createdAt), "yyyy-MM-dd HH:mm") : "-"}
                             </td>
                             <td className="px-3 py-2 border-b">
                                 <div className="font-medium">{l.org}</div>
@@ -66,7 +66,7 @@ export default async function AdminConsultationsPage() {
                                 <div>{l.packageName}</div>
                                 <div className="text-gray-600">{l.packagePrice}</div>
                             </td>
-                            <td className="px-3 py-2 border-b">{l.when || "—"}</td>
+                            <td className="px-3 py-2 border-b">{l.when || "-"}</td>
                             <td className="px-3 py-2 border-b">
                                 <UpdateStatus id={String(l._id)} current={l.status} />
                             </td>

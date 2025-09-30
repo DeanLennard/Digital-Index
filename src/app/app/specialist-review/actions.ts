@@ -81,9 +81,9 @@ export async function createConsultationLead(formData: FormData) {
                 `• *Email*: ${leadDoc.email}\n` +
                 `• *Org*: ${leadDoc.org}\n` +
                 `• *Package*: ${leadDoc.packageName} (${leadDoc.packagePrice})\n` +
-                `• *When*: ${leadDoc.when ?? "—"}\n` +
-                `• *Notes*: ${leadDoc.notes ?? "—"}\n` +
-                `• *orgId*: ${leadDoc.orgId ?? "—"}  *userId*: ${leadDoc.userId ?? "—"}`;
+                `• *When*: ${leadDoc.when ?? "-"}\n` +
+                `• *Notes*: ${leadDoc.notes ?? "-"}\n` +
+                `• *orgId*: ${leadDoc.orgId ?? "-"}  *userId*: ${leadDoc.userId ?? "-"}`;
             await fetch(process.env.CONSULT_SLACK_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "content-type": "application/json" },
@@ -118,7 +118,7 @@ export async function createConsultationLead(formData: FormData) {
 
         await sendBrandedEmail({
             to: admins,
-            subject: `New specialist review — ${leadDoc.org}`,
+            subject: `New specialist review - ${leadDoc.org}`,
             html,
         });
     }

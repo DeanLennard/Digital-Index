@@ -31,7 +31,7 @@ export default function TakeSurveyClient({
         if (!res.ok) {
             const msg = await res.text().catch(() => "");
             if (res.status === 402) alert("Upgrade to run more surveys.");
-            else if (res.status === 409) alert("Baseline already completed — use the quarterly reassessment.");
+            else if (res.status === 409) alert("Baseline already completed - use the quarterly reassessment.");
             else alert(`Couldn’t save survey (${res.status}). ${msg}`);
             return;
         }
@@ -48,7 +48,7 @@ export default function TakeSurveyClient({
                 ) : locked ? (
                     <p>
                         Quarterly reassessment is locked. Next available on{" "}
-                        <b>{nextDate ? new Date(nextDate).toLocaleDateString() : "—"}</b>.
+                        <b>{nextDate ? new Date(nextDate).toLocaleDateString() : "-"}</b>.
                     </p>
                 ) : (
                     <p>Quarterly reassessment is <b>unlocked</b>. Let’s refresh your score.</p>

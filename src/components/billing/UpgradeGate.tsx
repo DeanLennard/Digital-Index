@@ -32,7 +32,7 @@ export default function UpgradeGate({
                     disabled={loading}
                     className="inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white bg-[var(--primary)] hover:opacity-90"
                 >
-                    {loading ? "Starting checkout..." : "Upgrade — £39/mo"}
+                    {loading ? "Starting checkout..." : "Upgrade - £39/mo"}
                 </button>
                 <a href="/pricing" className="text-sm underline">See full plan details</a>
             </div>

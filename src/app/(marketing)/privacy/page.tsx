@@ -38,12 +38,12 @@ export default function PrivacyPage() {
             <div className="mt-8">
                 <h2 className="text-xl font-semibold">Why we use your data (lawful bases)</h2>
                 <ul className="mt-2 list-disc list-inside text-gray-700 space-y-1">
-                    <li><strong>To provide the service</strong> (create orgs, run surveys, generate reports) — <em>Contract</em>.</li>
-                    <li><strong>Authentication & security</strong> (magic links, audit logs, fraud prevention) — <em>Legitimate interests</em> and <em>Legal obligation</em>.</li>
-                    <li><strong>Billing</strong> (subscriptions, invoices, dunning) — <em>Contract</em> and <em>Legal obligation</em>.</li>
-                    <li><strong>Product analytics</strong> (improve usability and reliability) — <em>Consent</em> (off by default).</li>
-                    <li><strong>Service emails</strong> (welcome, monthly round-up, reminders) — <em>Legitimate interests</em> or <em>Contract</em>. You can opt out of non-essential emails.</li>
-                    <li><strong>Marketing</strong> (if enabled) — <em>Consent</em>.</li>
+                    <li><strong>To provide the service</strong> (create orgs, run surveys, generate reports) - <em>Contract</em>.</li>
+                    <li><strong>Authentication & security</strong> (magic links, audit logs, fraud prevention) - <em>Legitimate interests</em> and <em>Legal obligation</em>.</li>
+                    <li><strong>Billing</strong> (subscriptions, invoices, dunning) - <em>Contract</em> and <em>Legal obligation</em>.</li>
+                    <li><strong>Product analytics</strong> (improve usability and reliability) - <em>Consent</em> (off by default).</li>
+                    <li><strong>Service emails</strong> (welcome, monthly round-up, reminders) - <em>Legitimate interests</em> or <em>Contract</em>. You can opt out of non-essential emails.</li>
+                    <li><strong>Marketing</strong> (if enabled) - <em>Consent</em>.</li>
                 </ul>
             </div>
 
@@ -69,13 +69,13 @@ export default function PrivacyPage() {
                     We use trusted providers under written contracts and data-processing agreements:
                 </p>
                 <ul className="mt-2 list-disc list-inside text-gray-700 space-y-1">
-                    <li><strong>Hosting</strong> (e.g. Vultr or equivalent) — serves our application.</li>
-                    <li><strong>Database</strong> (MongoDB Atlas) — stores app data securely.</li>
-                    <li><strong>Object storage</strong> (Cloudflare R2 or AWS S3) — stores generated PDFs/exports.</li>
-                    <li><strong>Payments</strong> (Stripe) — processes subscriptions and invoices.</li>
-                    <li><strong>Email</strong> (Resend/SendGrid) — sends transactional messages.</li>
-                    <li><strong>Product analytics</strong> (PostHog) — loaded only with consent.</li>
-                    <li><strong>Authentication</strong> (NextAuth + optional Google SSO) — identity and sign-in.</li>
+                    <li><strong>Hosting</strong> (e.g. Vultr or equivalent) - serves our application.</li>
+                    <li><strong>Database</strong> (MongoDB Atlas) - stores app data securely.</li>
+                    <li><strong>Object storage</strong> (Cloudflare R2 or AWS S3) - stores generated PDFs/exports.</li>
+                    <li><strong>Payments</strong> (Stripe) - processes subscriptions and invoices.</li>
+                    <li><strong>Email</strong> (Resend/SendGrid) - sends transactional messages.</li>
+                    <li><strong>Product analytics</strong> (PostHog) - loaded only with consent.</li>
+                    <li><strong>Authentication</strong> (NextAuth + optional Google SSO) - identity and sign-in.</li>
                 </ul>
                 <p className="mt-2 text-gray-700">
                     We do <strong>not</strong> sell personal data. We may disclose data if required by law or to protect our rights and users’ safety.

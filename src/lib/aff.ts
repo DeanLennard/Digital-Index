@@ -23,7 +23,7 @@ export function buildAffiliateUrl(
             set("ascsubtag", ids.clickId);
             break;
 
-        // Many networks accept generic sub params — use paramKeys from DB
+        // Many networks accept generic sub params - use paramKeys from DB
         default:
             set(offer.paramKeys?.clickId ?? "subId", ids.clickId);
             set(offer.paramKeys?.orgId, ids.orgId ?? null);
