@@ -3,8 +3,7 @@ import { redirect } from "next/navigation";
 import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
 import { UpgradeButton } from "@/components/billing/UpgradeButton";
-import { ManagePortalButton } from "@/components/billing/ManagePortalButton";
-import { ObjectId } from "mongodb";
+import ManagePortalButtonGate from "@/components/billing/ManagePortalButtonGate";
 
 type SP = { status?: string };
 
@@ -102,7 +101,7 @@ export default async function BillingPage({
                                 </span>
                             </div>
                         )}
-                        <div className="pt-2"><ManagePortalButton /></div>
+                        <div className="pt-2"><ManagePortalButtonGate /></div>
                     </>
                 ) : (
                     <>
