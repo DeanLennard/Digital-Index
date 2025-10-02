@@ -105,8 +105,8 @@ export default async function ActionsPage() {
                                                     className="shrink-0 inline-flex items-center rounded px-2 py-0.5 border text-[11px] border-gray-300 text-gray-700"
                                                     title="Matched to your current level"
                                                 >
-                          {LEVEL_LABEL[lvl]}
-                        </span>
+                                                  {LEVEL_LABEL[lvl]}
+                                                </span>
                                             )}
                                         </div>
                                     </li>
