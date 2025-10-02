@@ -1,9 +1,10 @@
+// src/components/app/AppNav.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const items = [
+const baseItems  = [
     { href: "/app", label: "Dashboard" },
     { href: "/app/take-survey", label: "Take survey" },
     { href: "/app/pulse", label: "Monthly Pulse" },
@@ -14,8 +15,12 @@ const items = [
     { href: "/app/team", label: "Team" },
 ];
 
-export default function AppNav() {
+export default function AppNav({ hideBilling = false }: { hideBilling?: boolean }) {
     const pathname = usePathname();
+
+    const items = hideBilling
+        ? baseItems.filter((i) => i.href !== "/app/billing")
+        : baseItems;
 
     return (
         <nav className="rounded-lg border bg-white p-2">

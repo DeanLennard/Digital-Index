@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { col } from "@/lib/db";
+import { ObjectId } from "mongodb";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getOrgContext } from "@/lib/access";
@@ -17,9 +18,61 @@ import OrgSwitcherServer from "@/components/app/OrgSwitcherServer";
 import Image from 'next/image'
 import SpecialistCTA from "@/components/app/SpecialistCTA";
 
-export const metadata: Metadata = {
-    title: { default: "Digital Index", template: "%s - Digital Index" },
+type OrgWL = {
+    name?: string | null;
+    isUnderWhiteLabel?: boolean;
+    whiteLabelLogoUrl?: string | null;
+    whiteLabelOrgId?: string | null;
+    ch?: {
+        isUnderWhiteLabel?: boolean;
+        whiteLabelLogoUrl?: string | null;
+        whiteLabelOrgId?: string | null;
+    };
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+    const { orgId } = await getOrgContext();
+    if (!orgId) {
+        return { title: { default: "Digital Index", template: "%s - Digital Index" } };
+    }
+
+    const orgs = await col("orgs");
+    const org = await orgs.findOne<OrgWL>(
+        { _id: new ObjectId(orgId) },
+        {
+            projection: {
+                isUnderWhiteLabel: 1,
+                whiteLabelOrgId: 1,
+                "ch.isUnderWhiteLabel": 1,
+                "ch.whiteLabelOrgId": 1,
+            },
+        }
+    );
+
+    const underWL = Boolean(org?.isUnderWhiteLabel ?? org?.ch?.isUnderWhiteLabel);
+
+    let partnerName: string | null = null;
+    const wlOrgId = (org?.whiteLabelOrgId ?? org?.ch?.whiteLabelOrgId) || null;
+
+    if (underWL && wlOrgId && ObjectId.isValid(wlOrgId)) {
+        const partner = await orgs.findOne<{ name?: string }>(
+            { _id: new ObjectId(wlOrgId) },
+            { projection: { name: 1 } }
+        );
+        partnerName = partner?.name || null;
+    }
+
+    if (underWL && partnerName) {
+        return {
+            title: {
+                default: `${partnerName} - powered by Digital Index`,
+                template: `%s - ${partnerName} - Digital Index`,
+            },
+        };
+    }
+
+    return { title: { default: "Digital Index", template: "%s - Digital Index" } };
+}
 
 async function MaybeAdminLink() {
     const session = await auth();
@@ -42,6 +95,46 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // If no org yet (onboarding), treat as not premium so we don't show the card incorrectly
     const premium = orgId ? await isPremium(orgId) : false;
 
+    let underWL = false;
+    let wlLogoUrl: string | null = null;
+    let partnerName: string | null = null;
+    let orgNameForAlt = "Digital Index";
+
+    if (orgId) {
+        const orgs = await col("orgs");
+        const org = await orgs.findOne<OrgWL>(
+            { _id: new ObjectId(orgId) },
+            {
+                projection: {
+                    name: 1,
+                    isUnderWhiteLabel: 1,
+                    whiteLabelLogoUrl: 1,
+                    whiteLabelOrgId: 1,            // ← ADD THIS
+                    "ch.isUnderWhiteLabel": 1,
+                    "ch.whiteLabelLogoUrl": 1,
+                    "ch.whiteLabelOrgId": 1,       // ← AND THIS
+                },
+            }
+        );
+
+        underWL   = Boolean(org?.isUnderWhiteLabel ?? org?.ch?.isUnderWhiteLabel);
+        wlLogoUrl = (org?.whiteLabelLogoUrl ?? org?.ch?.whiteLabelLogoUrl) || null;
+
+        const wlOrgId = (org?.whiteLabelOrgId ?? org?.ch?.whiteLabelOrgId) || null; // ← now resolves
+        if (wlOrgId && ObjectId.isValid(wlOrgId)) {
+            const partner = await orgs.findOne<{ name?: string }>(
+                { _id: new ObjectId(wlOrgId) },
+                { projection: { name: 1 } }
+            );
+            partnerName = partner?.name || null;
+        }
+    }
+
+    const brandSrc = underWL && wlLogoUrl ? wlLogoUrl : "/DigitalIndex.svg";
+    const brandAlt = underWL && partnerName
+        ? `${partnerName} - powered by Digital Index`
+        : "Digital Index";
+
     return (
         <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
             <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 bg-white px-3 py-2 rounded shadow">
@@ -52,12 +145,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 <div className="mx-auto max-w-6xl h-14 px-4 sm:px-6 flex items-center justify-between">
                     <Link href="/app" className="font-semibold text-[var(--navy)] tracking-tight">
                         <Image
-                            src="/DigitalIndex.svg"
-                            alt="Digital Index"
+                            src={brandSrc}
+                            alt={brandAlt}
                             width={192}
                             height={32}
                             priority
                             unoptimized
+                            className="h-8 w-auto object-contain"   // keeps non-16:3 logos neat
                         />
                     </Link>
 
@@ -65,13 +159,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
                     <div className="flex items-center gap-4 text-sm">
                         {await MaybeAdminLink()}
-                        <Link
-                            href="/app/profile"
-                            className="hidden sm:inline text-gray-600 hover:underline"
-                            title="View / update your organisation details"
-                        >
-                            {session.user?.email}
-                        </Link>
+                        {underWL ? (
+                            <span
+                                className="hidden sm:inline text-gray-600"
+                                title="Your account"
+                            >
+                                {session.user?.email}
+                            </span>
+                        ) : (
+                            <Link
+                                href="/app/profile"
+                                className="hidden sm:inline text-gray-600 hover:underline"
+                                title="View / update your organisation details"
+                            >
+                                {session.user?.email}
+                            </Link>
+                        )}
                         <AuthButtons />
                     </div>
                 </div>
@@ -79,7 +182,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
             <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 grid grid-cols-12 gap-6">
                 <aside className="col-span-12 md:col-span-3 lg:col-span-3">
-                    <AppNav />
+                    <AppNav hideBilling={underWL} />
 
                     {/* Show upgrade card ONLY when not premium */}
                     {!premium && (

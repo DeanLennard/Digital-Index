@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import { col } from "@/lib/db";
 import { getOrgContext } from "@/lib/access";
+import { ObjectId } from "mongodb";
 import { UpgradeButton } from "@/components/billing/UpgradeButton";
 import ManagePortalButtonGate from "@/components/billing/ManagePortalButtonGate";
 
@@ -26,6 +27,13 @@ export default async function BillingPage({
     const sp = await searchParams;
     const { orgId } = await getOrgContext();
     if (!orgId) redirect("/app/onboarding");
+
+    const orgs = await col("orgs");
+    const org = await orgs.findOne<{ isUnderWhiteLabel?: boolean }>(
+        { _id: new ObjectId(orgId) },
+        { projection: { isUnderWhiteLabel: 1 } }
+    );
+    if (org?.isUnderWhiteLabel) redirect("/app");
 
     const subs = await col("subscriptions");
     const sub = await subs.findOne<{
