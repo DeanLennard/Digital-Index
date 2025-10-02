@@ -88,7 +88,7 @@ async function syncUserOrgIds(userId: ObjectId) {
     await (await col("users")).updateOne({ _id: userId }, { $set: { orgId: orgIds } });
 }
 
-export async function updateUser(formData: FormData) {
+export async function updateUser(formData: FormData) : Promise<void> {
     await requireAdmin();
     const raw = Object.fromEntries(formData) as Record<string, string>;
     const parsed = UpdateUserSchema.parse(raw);
@@ -147,10 +147,9 @@ export async function updateUser(formData: FormData) {
 
     revalidatePath("/admin/users");
     revalidatePath(`/admin/users/${String(userId)}`);
-    return { ok: true };
 }
 
-export async function addMembership(formData: FormData) {
+export async function addMembership(formData: FormData) : Promise<void> {
     await requireAdmin();
     const raw = Object.fromEntries(formData) as Record<string, string>;
     const parsed = AddMembershipSchema.parse(raw);
@@ -185,10 +184,9 @@ export async function addMembership(formData: FormData) {
 
     revalidatePath("/admin/users");
     revalidatePath(`/admin/users/${String(userId)}`);
-    return { ok: true };
 }
 
-export async function updateMembershipRole(formData: FormData) {
+export async function updateMembershipRole(formData: FormData) : Promise<void> {
     await requireAdmin();
     const raw = Object.fromEntries(formData) as Record<string, string>;
     const parsed = UpdateMembershipSchema.parse(raw);
@@ -203,10 +201,9 @@ export async function updateMembershipRole(formData: FormData) {
     await syncUserOrgIds(userId);
 
     revalidatePath(`/admin/users/${String(userId)}`);
-    return { ok: true };
 }
 
-export async function removeMembership(formData: FormData) {
+export async function removeMembership(formData: FormData) : Promise<void> {
     await requireAdmin();
     const raw = Object.fromEntries(formData) as Record<string, string>;
     const parsed = RemoveMembershipSchema.parse(raw);
@@ -217,5 +214,4 @@ export async function removeMembership(formData: FormData) {
     await syncUserOrgIds(userId);
 
     revalidatePath(`/admin/users/${String(userId)}`);
-    return { ok: true };
 }
