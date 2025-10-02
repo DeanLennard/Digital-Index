@@ -35,8 +35,10 @@ export default async function ActionsPage() {
     const premium = await isPremium(orgId);
     const latestBQ = await getLatestBQSurvey(orgId);
 
+
+
     // Recommended (already level-aware via top3ActionsFrom)
-    const recommended = latestBQ ? top3ActionsFrom(latestBQ.scores as any) : [];
+    const recommended = latestBQ ? await top3ActionsFrom(latestBQ.scores as any) : [];
 
     // Compute user level per category (to display chips)
     const levelByCat: Partial<Record<CategoryKey, Level>> = {};

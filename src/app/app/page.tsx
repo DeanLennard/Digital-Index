@@ -42,7 +42,7 @@ export default async function AppHome() {
     // Recommended actions (from latest report summary if present, else from latest B/Q survey)
     const actions =
         (latestReport?.summary?.topActions as any[]) ??
-        (latestSurvey ? top3ActionsFrom(latestSurvey.scores as any) : []);
+        (latestSurvey ? await top3ActionsFrom(latestSurvey.scores as any) : []);
 
     // Pulses for chart + schedule
     const pulses = await surveysCol

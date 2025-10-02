@@ -28,7 +28,7 @@ export async function createReportForSurvey(
 
     const bench = await getLatestBenchmark();
     const deltas = bench ? calcDeltas(survey.scores as any, bench.mapping as any) : null;
-    const topActions = top3ActionsFrom(survey.scores as any);
+    const topActions = await top3ActionsFrom(survey.scores as any);
 
     // Stub until you wire real PDF storage
     const pdfUrl = `/app/reports/pdf/${surveyId}`;

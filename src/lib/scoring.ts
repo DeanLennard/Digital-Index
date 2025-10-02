@@ -119,6 +119,18 @@ export type ActionItem = {
     level?: Level;
 };
 
+type GuideDoc = {
+    _id: ObjectId;
+    slug: string;
+    title: string;
+    category: CategoryKey;
+    status?: string;
+    estMinutes?: number;
+    contentByLevel?: Partial<Record<Level, unknown>>;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
 /** Admin-editable in future; for now, a sensible starter library. */
 const ACTION_LIBRARY: Record<CategoryKey, ActionItem[]> = {
     security: [
@@ -252,43 +264,103 @@ const ACTION_LIBRARY: Record<CategoryKey, ActionItem[]> = {
  */
 const LOW = 2.5;
 
-export function top3ActionsFrom(scores: Partial<Scores>): ActionItem[] {
-    const entries = (Object.entries(scores) as [keyof Scores | "total", number][])
-        .filter(([k]) => k !== "total") as [keyof Scores, number][];
+export async function top3ActionsFrom(scores: Partial<Scores>): Promise<ActionItem[]> {
+    const guides = await col<GuideDoc>("guides");
 
-    const cats = entries.sort((a,b) => a[1] - b[1]); // lowest first
+    // category scores, lowest first (ignore "total")
+    const cats = (Object.entries(scores) as [keyof Scores | "total", number][])
+        .filter(([k]) => k !== "total") as [keyof Scores, number][];
+    cats.sort((a, b) => a[1] - b[1]);
 
     const picked: ActionItem[] = [];
-    let remaining = 3;
+    const seenSlugs = new Set<string>();
 
     for (const [cat, score] of cats) {
-        if (remaining <= 0) break;
-        const want: Level = levelForScore(score);
-        const library = ACTION_LIBRARY[cat] ?? [];
+        if (picked.length >= 3) break;
 
-        // Prefer exact level
-        const preferred = library.filter(a => !a.level || a.level === want);
-        const pool = preferred.length ? preferred : library; // fallback
+        const want = levelForScore(score); // foundation/core/advanced
 
-        for (const a of pool) {
-            if (remaining <= 0) break;
-            if (!picked.some(p => p.title === a.title)) {
-                picked.push(a);
-                remaining--;
+        // 1) Prefer guides that explicitly have content for desired level
+        const preferred = await guides
+            .find(
+                {
+                    status: "published",
+                    category: cat,
+                    [`contentByLevel.${want}`]: { $exists: true },
+                },
+                {
+                    projection: { slug: 1, title: 1, category: 1, estMinutes: 1, contentByLevel: 1 },
+                    sort: { updatedAt: -1, createdAt: -1 },
+                    limit: 6,
+                } as any
+            )
+            .toArray();
+
+        const toAction = (g: GuideDoc): ActionItem => {
+            const levelsPresent = Object.keys(g.contentByLevel || {}) as Level[];
+            const level: Level | undefined = levelsPresent.includes(want)
+                ? want
+                : levelsPresent[0]; // best guess if available
+            return {
+                title: g.title,
+                link: `/app/guides/${g.slug}`,
+                category: g.category,
+                estMinutes: g.estMinutes,
+                level,
+            };
+        };
+
+        const addFrom = (arr: GuideDoc[]) => {
+            for (const g of arr) {
+                if (picked.length >= 3) break;
+                if (seenSlugs.has(g.slug)) continue;
+                picked.push(toAction(g));
+                seenSlugs.add(g.slug);
             }
+        };
+
+        if (preferred.length) addFrom(preferred);
+
+        // 2) Fallback to any published guide in this category if still short
+        if (picked.length < 3) {
+            const fallback = await guides
+                .find(
+                    { status: "published", category: cat },
+                    {
+                        projection: { slug: 1, title: 1, category: 1, estMinutes: 1, contentByLevel: 1 },
+                        sort: { updatedAt: -1, createdAt: -1 },
+                        limit: 6,
+                    } as any
+                )
+                .toArray();
+            addFrom(fallback);
         }
     }
 
-    // Backfill if needed
-    if (remaining > 0) {
-        for (const [cat] of cats) {
-            for (const a of (ACTION_LIBRARY[cat] ?? [])) {
-                if (remaining <= 0) break;
-                if (!picked.some(p => p.title === a.title)) {
-                    picked.push(a); remaining--;
-                }
-            }
-            if (remaining <= 0) break;
+    // 3) If still fewer than 3, backfill from any category (recent first)
+    if (picked.length < 3) {
+        const backfill = await (await col<GuideDoc>("guides"))
+            .find(
+                { status: "published" },
+                {
+                    projection: { slug: 1, title: 1, category: 1, estMinutes: 1, contentByLevel: 1 },
+                    sort: { updatedAt: -1, createdAt: -1 },
+                    limit: 12,
+                } as any
+            )
+            .toArray();
+
+        for (const g of backfill) {
+            if (picked.length >= 3) break;
+            if (seenSlugs.has(g.slug)) continue;
+            picked.push({
+                title: g.title,
+                link: `/app/guides/${g.slug}`,
+                category: g.category,
+                estMinutes: g.estMinutes,
+                // not forcing a level here; UI chip can omit if undefined
+            });
+            seenSlugs.add(g.slug);
         }
     }
 

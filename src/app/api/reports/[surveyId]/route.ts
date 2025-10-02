@@ -47,7 +47,7 @@ export async function POST(
     // Build summary
     const bench = await getLatestBenchmark();
     const deltas = bench ? calcDeltas(survey.scores as any, bench.mapping as any) : null;
-    const topActions = top3ActionsFrom(survey.scores as any);
+    const topActions = await top3ActionsFrom(survey.scores as any);
 
     // Keep this non-public; it routes through the secured page above
     const pdfUrl = `/app/reports/pdf/${surveyId}`;
