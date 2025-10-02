@@ -99,6 +99,10 @@ export async function updateUser(formData: FormData) : Promise<void> {
     const userId = new ObjectId(parsed.userId);
     const users = await col("users");
 
+    const current = await users.findOne<{ whiteLabelOrgId?: string | null }>({
+        _id: userId,
+    }, { projection: { whiteLabelOrgId: 1 } });
+
     // Resolve WL base org if provided
     let whiteLabelOrgId: string | undefined = undefined;
     if (parsed.isWhiteLabel && parsed.whiteLabelOrgInput) {
@@ -147,6 +151,28 @@ export async function updateUser(formData: FormData) : Promise<void> {
         { _id: userId },
         Object.keys($unset).length ? { $set, $unset } : { $set }
     );
+
+    if (parsed.isWhiteLabel && (uploadedLogoUrl || parsed.clearWhiteLabelLogo)) {
+        const partnerId = whiteLabelOrgId ?? current?.whiteLabelOrgId;
+        if (partnerId && ObjectId.isValid(partnerId)) {
+            const orgs = await col("orgs");
+            const setLogo: Record<string, any> = {};
+            if (uploadedLogoUrl) {
+                setLogo.whiteLabelLogoUrl = uploadedLogoUrl;
+                setLogo["ch.whiteLabelLogoUrl"] = uploadedLogoUrl; // keep legacy in sync
+            } else if (parsed.clearWhiteLabelLogo) {
+                setLogo.whiteLabelLogoUrl = null;
+                setLogo["ch.whiteLabelLogoUrl"] = null;
+            }
+
+            if (Object.keys(setLogo).length) {
+                await orgs.updateMany(
+                    { isUnderWhiteLabel: true, whiteLabelOrgId: String(partnerId) },
+                    { $set: setLogo, $currentDate: { updatedAt: true } }
+                );
+            }
+        }
+    }
 
     revalidatePath("/admin/users");
     revalidatePath(`/admin/users/${String(userId)}`);
