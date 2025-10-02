@@ -10,6 +10,9 @@ import { promises as fs } from "fs";
 import path from "path";
 import crypto from "crypto";
 
+const UPLOADS_BASE =
+    process.env.UPLOADS_DIR || "/var/www/digitalindex/public/uploads";
+
 function mimeToExt(mime: string) {
     if (mime === "image/png") return ".png";
     if (mime === "image/jpeg") return ".jpg";
@@ -18,27 +21,27 @@ function mimeToExt(mime: string) {
     return "";
 }
 
-async function saveUploadToPublic(file: File, subdir = "uploads/whitelabel") {
-    // Basic validation
+async function saveUploadToPublic(file: File, subdir = "whitelabel") {
     const bytes = await file.arrayBuffer();
     const buf = Buffer.from(bytes);
-    if (buf.length > 2 * 1024 * 1024) { // 2MB
-        throw new Error("Logo must be ≤ 2MB");
-    }
-    if (!file.type?.startsWith("image/")) {
-        throw new Error("Logo must be an image");
-    }
+    if (buf.length > 2 * 1024 * 1024) throw new Error("Logo must be ≤ 2MB");
+    if (!file.type?.startsWith("image/")) throw new Error("Logo must be an image");
 
     const extFromName = path.extname(file.name || "").toLowerCase();
     const ext = extFromName || mimeToExt(file.type) || ".bin";
-
     const filename = `${Date.now()}-${crypto.randomBytes(5).toString("hex")}${ext}`;
-    const destDir = path.join(process.cwd(), "public", subdir);
-    await fs.mkdir(destDir, { recursive: true });
-    await fs.writeFile(path.join(destDir, filename), buf);
 
-    // Public URL path
-    return `/${subdir}/${filename}`;
+    const destDir = path.join(UPLOADS_BASE, subdir);
+    await fs.mkdir(destDir, { recursive: true });
+
+    const full = path.join(destDir, filename);
+    await fs.writeFile(full, buf, { mode: 0o664 }); // consistent perms
+    try { await fs.chmod(full, 0o664); } catch {}
+    // Only works if running as root; better to run as www-data so this is unnecessary.
+    if (process.getuid && process.getuid() === 0) await fs.chown(full, 33, 33); // 33=www-data on Debian/Ubuntu
+
+    // Public URL path that Next serves
+    return `/uploads/${subdir}/${filename}`;
 }
 
 const checkboxBool = z
