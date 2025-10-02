@@ -6,17 +6,20 @@ import { col } from "@/lib/db";
 import Link from "next/link";
 import { ObjectId } from "mongodb";
 
-type SearchParams = Record<string, string | string[] | undefined>;
+function escRe(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export default async function AdminUsersPage({
                                                  searchParams,
                                              }: {
-    searchParams?: SearchParams;
+    searchParams: Promise<{ email?: string; org?: string }>;
 }) {
     await requireAdmin();
 
-    const qEmail = typeof searchParams?.email === "string" ? searchParams!.email.trim() : "";
-    const qOrg = typeof searchParams?.org === "string" ? searchParams!.org.trim() : "";
+    const sp = await searchParams;
+    const qEmail = (sp.email ?? "").trim();
+    const qOrg = (sp.org ?? "").trim();
 
     const usersCol = await col<any>("users");
     const orgsCol = await col<any>("orgs");
@@ -24,9 +27,7 @@ export default async function AdminUsersPage({
 
     // Build user filter
     const userFilter: any = {};
-    if (qEmail) {
-        userFilter.email = { $regex: qEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
-    }
+    if (qEmail) userFilter.email = { $regex: escRe(qEmail), $options: "i" };
 
     let userIdsFilteredByOrg: string[] | null = null;
     if (qOrg) {
@@ -64,22 +65,16 @@ export default async function AdminUsersPage({
         .limit(100)
         .toArray();
 
+    // Preload org names (including WL orgs)
     const wlOrgIdSet = new Set<string>();
-    users.forEach((u: any) => {
-        if (u.whiteLabelOrgId) wlOrgIdSet.add(String(u.whiteLabelOrgId));
-    });
+    users.forEach((u: any) => { if (u.whiteLabelOrgId) wlOrgIdSet.add(String(u.whiteLabelOrgId)); });
 
-    const allOrgIds = new Set<string>([...Array.from(wlOrgIdSet)]);
+    const memb = await membersCol.find({ userId: { $in: users.map((u: any) => String(u._id)) } }).toArray();
+    const allOrgIds = new Set<string>([
+        ...Array.from(wlOrgIdSet),
+        ...memb.map((m: any) => String(m.orgId)),
+    ]);
 
-    // Preload memberships & org names for display
-    const userIds = users.map((u: any) => String(u._id));
-    const memb = await membersCol
-        .find({ userId: { $in: userIds } })
-        .toArray();
-
-    memb.forEach((m: any) => allOrgIds.add(String(m.orgId)));
-
-    const orgIdSet = new Set(memb.map((m: any) => m.orgId));
     const orgMap = new Map<string, any>();
     if (allOrgIds.size) {
         const orgList = await orgsCol
@@ -94,7 +89,6 @@ export default async function AdminUsersPage({
         arr.push({ orgId: m.orgId, role: m.role });
         membershipsByUser.set(m.userId, arr);
     });
-
     return (
         <div className="rounded-lg border bg-white p-5">
             <div className="flex items-center justify-between gap-4">
