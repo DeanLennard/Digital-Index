@@ -1,7 +1,7 @@
 // src/components/SurveyForm.tsx
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { DbQuestion, Cat } from "@/lib/surveys";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,13 +20,31 @@ const idxToScore = (i: number) => (i * 5) / 4;
 export function SurveyForm({
                                questions,
                                onSubmit,
+                               initialAnswers,
+                               submitLabel,
                            }: {
     questions: DbQuestion[];
     onSubmit: (answers: Record<string, number>) => void;
+    initialAnswers?: Record<string, number>;
+    submitLabel?: string;
 }) {
     // answers store normalised 0..5 numbers keyed by question _id
     const [answers, setAnswers] = useState<Record<string, number>>({});
     const firstUnansweredRef = useRef<string | null>(null);
+
+    const initialForThisPage = useMemo(() => {
+        if (!initialAnswers) return {};
+        const allowed = new Set(questions.map((q) => String(q._id)));
+        const out: Record<string, number> = {};
+        for (const [k, v] of Object.entries(initialAnswers)) {
+            if (allowed.has(k) && Number.isFinite(v as number)) out[k] = Number(v);
+        }
+        return out;
+    }, [initialAnswers, questions]);
+
+    useEffect(() => {
+        setAnswers(initialForThisPage);
+    }, [initialForThisPage]);
 
     const total = questions.length;
     const done = Object.keys(answers).length;
@@ -88,7 +106,9 @@ export function SurveyForm({
             </div>
 
             {/* Sections */}
-            {(Object.keys(grouped) as Cat[]).map(cat => (
+            {(Object.keys(grouped) as Cat[])
+                .filter((cat) => grouped[cat].length > 0)
+                .map((cat) => (
                 <fieldset key={cat} className="rounded-lg border bg-white p-4">
                     <legend className="text-base font-semibold text-[var(--navy)] px-1">
                         {CAT_LABEL[cat]}
