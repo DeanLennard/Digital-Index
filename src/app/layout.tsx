@@ -4,6 +4,7 @@ import Script from "next/script";
 import { Suspense } from "react";
 import Providers from "@/components/providers/Providers";
 import GAClient from "@/components/analytics/GAClient";
+import LinkedInNoScript from "@/components/AnalyticsLoader";
 
 export const metadata: Metadata = {
     icons: {
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <GAClient />
             </Suspense>
             {children}
+            <LinkedInNoScript />
         </Providers>
         </body>
         </html>
