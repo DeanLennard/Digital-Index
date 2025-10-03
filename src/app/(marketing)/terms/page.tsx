@@ -36,7 +36,7 @@ export default function TermsPage() {
             {/* 3. Plans, trials, fees */}
             <h2 className="mt-8 text-xl font-semibold">3. Plans, trials and fees</h2>
             <ul className="mt-2 list-disc list-inside text-gray-700 space-y-1">
-                <li><strong>Free:</strong> one-off baseline survey and PDF snapshot, read-only dashboard for that result.</li>
+                <li><strong>Free:</strong> one-off baseline survey and snapshot, read-only dashboard for that result.</li>
                 <li><strong>Premium (£39/month per organisation):</strong> ongoing tracking, quarterly re-assessments, monthly pulses, action nudges, template library, team seats, exports and branding.</li>
                 <li>Fees are exclusive of taxes unless stated. You authorise us (via Stripe) to charge your payment method on a recurring basis until cancellation.</li>
                 <li>If a trial is offered, it’s one-time per organisation and may be withdrawn at our discretion.</li>

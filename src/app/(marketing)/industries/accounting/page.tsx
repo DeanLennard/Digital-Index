@@ -74,7 +74,7 @@ function JsonLd() {
                         "name": "How long does the baseline take?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "10–15 minutes. You’ll get a clear score by category and a PDF snapshot you can share with partners and staff."
+                            "text": "10–15 minutes. You’ll get a clear score by category and a snapshot you can share with partners and staff."
                         }
                     },
                     {
@@ -234,7 +234,7 @@ export default function AccountingIndustryPage() {
                         {[
                             {
                                 q: "How long does the baseline take?",
-                                a: "10–15 minutes. You’ll get a clear score by category and a PDF snapshot you can share with partners and staff.",
+                                a: "10–15 minutes. You’ll get a clear score by category and a snapshot you can share with partners and staff.",
                             },
                             {
                                 q: "Is it relevant to small practices?",

@@ -168,7 +168,6 @@ const rows = [
     { feature: "Benchmark Updates (UK SMEs)", free: "-", pro: "✅ Quarterly + updates" },
     { feature: "Guides Library", free: "-", pro: "✅ Level-specific, growing monthly" },
     { feature: "Team Access", free: "-", pro: "✅ Unlimited invites" },
-    { feature: "Exports (CSV/PDF)", free: "-", pro: "✅ Included" },
 ];
 
 export default function PricingPage() {

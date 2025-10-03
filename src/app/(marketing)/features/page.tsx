@@ -169,7 +169,7 @@ export default function FeaturesPage() {
                         </h1>
                         <p className="mt-4 text-lg text-gray-700 max-w-prose">
                             Take a concise <strong>digital health check</strong> to get your{" "}
-                            <strong>digital readiness score</strong> across five pillars. Download a free PDF snapshot,
+                            <strong>digital readiness score</strong> across five pillars. With a snapshot,
                             then upgrade for <strong>UK SME benchmarks</strong>, trends and monthly action nudges that keep you moving.
                         </p>
                         <div className="mt-8 flex flex-wrap gap-3">
@@ -255,7 +255,7 @@ export default function FeaturesPage() {
                     {[
                         {
                             t: "Free baseline snapshot",
-                            d: "Your current score by pillar plus a shareable PDF snapshot.",
+                            d: "Your current score by pillar plus a snapshot.",
                         },
                         {
                             t: "Tailoured next actions",

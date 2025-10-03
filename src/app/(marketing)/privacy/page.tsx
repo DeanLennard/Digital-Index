@@ -29,7 +29,7 @@ export default function PrivacyPage() {
                     <li><strong>Organisation Profile (optional):</strong> name, sector, size band, logo.</li>
                     <li><strong>Survey Responses:</strong> your answers, per-category scores (0–5), overall score, report summaries.</li>
                     <li><strong>Billing:</strong> subscription status, Stripe customer ID and invoices. <em>We never store full card details.</em></li>
-                    <li><strong>Files:</strong> generated PDF reports and export files.</li>
+                    <li><strong>Files:</strong> generated reports and export files.</li>
                     <li><strong>Usage & Analytics (only with consent):</strong> pages viewed and events (e.g. “survey_completed”).</li>
                     <li><strong>Technical:</strong> IP address and user-agent in server logs for security and troubleshooting.</li>
                 </ul>
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
                 <ul className="mt-2 list-disc list-inside text-gray-700 space-y-1">
                     <li><strong>Hosting</strong> (e.g. Vultr or equivalent) - serves our application.</li>
                     <li><strong>Database</strong> (MongoDB Atlas) - stores app data securely.</li>
-                    <li><strong>Object storage</strong> (Cloudflare R2 or AWS S3) - stores generated PDFs/exports.</li>
+                    <li><strong>Object storage</strong> (Cloudflare R2 or AWS S3) - stores generated exports.</li>
                     <li><strong>Payments</strong> (Stripe) - processes subscriptions and invoices.</li>
                     <li><strong>Email</strong> (Resend/SendGrid) - sends transactional messages.</li>
                     <li><strong>Product analytics</strong> (PostHog) - loaded only with consent.</li>

@@ -24,7 +24,7 @@ export default function UpgradeGate({
                 <li>Quarterly full reassessments</li>
                 <li>Monthly pulse checks & action nudges</li>
                 <li>Benchmarks vs UK SME average</li>
-                <li>PDF/CSV exports & team seats</li>
+                <li>Team seats</li>
             </ul>
             <div className="mt-6 flex gap-3">
                 <button

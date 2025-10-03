@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 export async function sendWelcome(to: string, pdfUrl: string) {
     await resend.emails.send({
         to, from: process.env.EMAIL_FROM!, subject: 'Your baseline report is ready',
-        html: `<p>Download your snapshot: <a href="${pdfUrl}">PDF</a></p><p>Upgrade for ongoing tracking.</p>`
+        html: `<p>View your snapshot: <a href="${pdfUrl}">digital</a></p><p>Upgrade for ongoing tracking.</p>`
     });
 }
 

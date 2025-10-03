@@ -11,7 +11,7 @@ const ogImage = `${siteUrl}/Digital-Index-Snapshot.png`;
 export const metadata: Metadata = {
     title: "Free Digital Health Check for UK SMEs | Digital Index",
     description:
-        "Take a 10–15 minute digital health check for your UK SME. Get a digital maturity score, benchmark vs UK SMEs, a PDF snapshot, and top actions to improve.",
+        "Take a 10–15 minute digital health check for your UK SME. Get a digital maturity score, benchmark vs UK SMEs, a snapshot, and top actions to improve.",
     // Meta keywords are mostly ignored by search engines; keep minimal to avoid noise
     keywords: [
         "digital health check for SMEs",
@@ -74,7 +74,7 @@ function JsonLd() {
                     "@type": "Offer",
                     "price": "0.00",
                     "priceCurrency": "GBP",
-                    "description": "Free baseline digital health check & PDF snapshot"
+                    "description": "Free baseline digital health check & snapshot"
                 }
             },
             {
@@ -86,7 +86,7 @@ function JsonLd() {
                         "name": "How long does the baseline digital health check take?",
                         "acceptedAnswer": {
                             "@type": "Answer",
-                            "text": "About 10–15 minutes for most SMEs. You’ll receive a digital maturity score by category and a downloadable PDF snapshot."
+                            "text": "About 10–15 minutes for most SMEs. You’ll receive a digital maturity score by category and a downloadable snapshot."
                         }
                     },
                     {
@@ -128,7 +128,7 @@ function JsonLd() {
                     },
                     {
                         "@type": "HowToStep",
-                        "name": "Get your score & PDF",
+                        "name": "Get your score",
                         "text": "Instant breakdown by category plus a downloadable snapshot."
                     },
                     {
@@ -174,7 +174,7 @@ export default function HomePage() {
                         </h1>
                         <p className="mt-4 text-lg text-gray-700 max-w-prose">
                             Take a short <strong>digital maturity assessment</strong> and instantly see how your business compares to{" "}
-                            <strong>UK SME benchmarks</strong>. Get a downloadable PDF snapshot and the{" "}
+                            <strong>UK SME benchmarks</strong>. Get a snapshot and the{" "}
                             <strong>top actions</strong> that will move the needle fastest. No jargon. No fluff.
                         </p>
 
@@ -261,7 +261,7 @@ export default function HomePage() {
                             d: "Quick, straightforward questions across core digital areas.",
                         },
                         {
-                            t: "Get your score & PDF",
+                            t: "Get your score",
                             d: "Instant breakdown by category plus a downloadable snapshot.",
                         },
                         {

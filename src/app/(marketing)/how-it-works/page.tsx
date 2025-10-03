@@ -12,7 +12,7 @@ const ogImage = `${siteUrl}/how-it-works.png`;
 export const metadata: Metadata = {
     title: "How Digital Index Works - SME Digital Health Check & UK Benchmark",
     description:
-        "See how our 10–15 minute digital maturity assessment works. Get an SME digital readiness score, benchmark vs UK SMEs, a PDF snapshot, and clear next actions.",
+        "See how our 10–15 minute digital maturity assessment works. Get an SME digital readiness score, benchmark vs UK SMEs, a snapshot, and clear next actions.",
     // Keep this concise; search engines largely ignore it, but it can help some minor crawlers.
     keywords: [
         "digital health check for SMEs",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
         url: pageUrl,
         title: "How Digital Index Works - SME Digital Health Check & UK Benchmark",
         description:
-            "Answer 10–15 concise questions, get your digital score & PDF snapshot, and see the top actions. Upgrade for trends and monthly nudges.",
+            "Answer 10–15 concise questions, get your digital score & snapshot, and see the top actions. Upgrade for trends and monthly nudges.",
         siteName: "Digital Index",
         images: [{ url: ogImage, width: 1200, height: 630, alt: "How Digital Index works" }],
         type: "website",
@@ -71,7 +71,7 @@ function JsonLd() {
                 "@id": `${pageUrl}#howto`,
                 "name": "How to get your SME’s Digital Index score",
                 "description":
-                    "Take a short digital maturity assessment, get your SME digital readiness score and a PDF snapshot, and see the top actions to improve.",
+                    "Take a short digital maturity assessment, get your SME digital readiness score and a snapshot, and see the top actions to improve.",
                 "estimatedCost": { "@type": "MonetaryAmount", "currency": "GBP", "value": "0" },
                 "totalTime": "PT10M",
                 "tool": [{ "@type": "HowToTool", "name": "Digital Index survey" }],
@@ -87,7 +87,7 @@ function JsonLd() {
                         "@type": "HowToStep",
                         "position": 2,
                         "name": "Get your snapshot",
-                        "text": "Instant per-category scores and a downloadable PDF."
+                        "text": "Instant per-category scores."
                     },
                     {
                         "@type": "HowToStep",
@@ -202,7 +202,7 @@ export default function HowItWorksPage() {
                         <h3 className="font-medium text-[var(--navy)]">Free baseline snapshot</h3>
                         <ul className="mt-2 list-disc pl-5 text-gray-700 space-y-1">
                             <li>Instant overall and per-category scores</li>
-                            <li>PDF digital snapshot</li>
+                            <li>A digital snapshot</li>
                             <li>Top 3 recommended actions</li>
                             <li>No credit card required</li>
                         </ul>
