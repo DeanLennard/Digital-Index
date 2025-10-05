@@ -176,6 +176,9 @@ export default async function AdminHome() {
         named.forEach((o: any) => cancelOrgMap.set(String(o._id), o.name || String(o._id)));
     }
 
+    const nonPartnerPool = freeCount + directPremiumCount;
+    const conversionRate = nonPartnerPool > 0 ? directPremiumCount / nonPartnerPool : 0;
+
     return (
         <div className="space-y-6">
             {/* headline cards */}
@@ -201,7 +204,7 @@ export default async function AdminHome() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
                 <div className="rounded-lg border bg-white p-4">
                     <div className="text-xs text-gray-500">Active direct subscriptions</div>
                     <div className="text-2xl font-semibold">{directPremiumCount}</div>
@@ -217,7 +220,16 @@ export default async function AdminHome() {
                     <div className="text-2xl font-semibold">{Math.round(churnRate30d * 100)}%</div>
                     <div className="text-xs text-gray-500 mt-1">{churnCount30d} cancellations</div>
                 </div>
+                {/* NEW: Conversion */}
+                <div className="rounded-lg border bg-white p-4">
+                    <div className="text-xs text-gray-500">Conversion (Free → Premium)</div>
+                    <div className="text-2xl font-semibold">{Math.round(conversionRate * 100)}%</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                        {directPremiumCount}/{nonPartnerPool} non-WL / non-partner orgs
+                    </div>
+                </div>
             </div>
+
 
             {/* Charts */}
             <div className="rounded-lg border bg-white p-4">
