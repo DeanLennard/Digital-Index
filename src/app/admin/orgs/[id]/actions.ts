@@ -2,6 +2,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { ObjectId } from "mongodb";
 import { requireAdmin } from "@/lib/admin";
 import { col } from "@/lib/db";
@@ -66,30 +67,38 @@ export async function deleteOrgAndData(formData: FormData) {
     const orgId = String(formData.get("orgId") || "");
     const confirm = String(formData.get("confirm") || "");
 
-    // Require a strong confirm
     const orgs = await col("orgs");
     const org = await orgs.findOne({ _id: oid(orgId) }, { projection: { name: 1 } });
     if (!org) throw new Error("Org not found");
 
-    const name = org.name || orgId;
-    if (!confirm.toLowerCase().includes("delete") || !confirm.toLowerCase().includes(String(name).toLowerCase())) {
-        throw new Error("Confirmation text did not match. Include the word DELETE and the org name/ID.");
+    // confirmation check (your robust version)
+    const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+    const c = norm(confirm);
+    const hasDeleteWord = /\bdelete\b/.test(c);
+    const nameNorm = org.name ? norm(String(org.name)) : null;
+    const idNorm = norm(orgId);
+    const mentionsName = nameNorm ? c.includes(nameNorm) : false;
+    const mentionsId = c.includes(idNorm);
+
+    if (!hasDeleteWord || !(mentionsName || mentionsId)) {
+        const wantA = `DELETE ${org.name || orgId}`;
+        const wantB = org.name ? `or: DELETE ${orgId}` : "";
+        throw new Error(`Confirmation text did not match. Type: "${wantA}" ${wantB}`.trim());
     }
 
-    // Child collections
-    const results = {
-        surveys: await deleteManyByOrg("surveys", orgId),
-        invites: await deleteManyByOrg("invites", orgId),
-        orgMembers: await deleteManyByOrg("orgMembers", orgId),
-        reports: await deleteManyByOrg("reports", orgId),
-        subscriptions: await deleteManyByOrg("subscriptions", orgId),
-    };
+    // delete children
+    await Promise.all([
+        deleteManyByOrg("surveys", orgId),
+        deleteManyByOrg("invites", orgId),
+        deleteManyByOrg("orgMembers", orgId),
+        deleteManyByOrg("reports", orgId),
+        deleteManyByOrg("subscriptions", orgId),
+    ]);
 
-    // Finally delete the org
-    const delOrg = await orgs.deleteOne({ _id: oid(orgId) });
+    // delete org
+    await orgs.deleteOne({ _id: oid(orgId) });
 
-    console.log("[ADMIN] deleteOrgAndData", { orgId, results, delOrg: delOrg.deletedCount });
-
-    // Back to list
+    // refresh the list and navigate there
     revalidatePath("/admin/orgs");
+    redirect("/admin/orgs?deleted=1");   // ⬅️ this prevents the 404
 }

@@ -6,7 +6,7 @@ import { requireAdmin } from "@/lib/admin";
 import { col } from "@/lib/db";
 import { ObjectId } from "mongodb";
 
-type SP = { q?: string };
+type SP = { q?: string; deleted?: string };
 
 export default async function AdminOrgsIndex({
                                                  searchParams,
@@ -44,6 +44,11 @@ export default async function AdminOrgsIndex({
 
     return (
         <div className="rounded-lg border bg-white p-5">
+            {sp.deleted === "1" && (
+                <div className="mb-4 rounded border bg-green-50 text-green-800 text-sm px-3 py-2">
+                    Organisation deleted.
+                </div>
+            )}
             <div className="flex items-center justify-between gap-3">
                 <h1 className="text-lg font-semibold text-[var(--navy)]">Organisations</h1>
                 <form className="flex gap-2">

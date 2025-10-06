@@ -86,6 +86,8 @@ export default async function AdminOrgDetail({
         .limit(100)
         .toArray();
 
+    const orgIdStr = String(org._id);
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -276,13 +278,11 @@ export default async function AdminOrgDetail({
                     <code>orgMembers</code>, <code>reports</code>, and <code>subscriptions</code>.
                 </p>
                 <form action={deleteOrgAndData} className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
-                    <input type="hidden" name="orgId" value={String(org._id)} />
-                    <input
-                        name="confirm"
-                        placeholder={`Type DELETE ${org.name || String(org._id)} to confirm`}
-                        className="rounded border px-2 py-1"
-                        autoComplete="off"
-                    />
+                    <input type="hidden" name="orgId" value={orgIdStr} />
+                    <p className="text-xs text-gray-600">
+                        Type <code>DELETE {org.name || orgIdStr}</code> (or <code>DELETE {orgIdStr}</code>) to confirm.
+                    </p>
+                    <input name="confirm" className="mt-1 w-full rounded border px-2 py-1" placeholder={`DELETE ${org.name || orgIdStr}`} />
                     <button className="rounded-md bg-rose-600 text-white text-sm px-4 py-2">
                         Permanently delete org & data
                     </button>
