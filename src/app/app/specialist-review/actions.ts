@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { consultationLeadHtml } from "@/emails/consultation-lead-html";
 import { sendBrandedEmail } from "@/lib/resend";
+import { captureServer } from "@/lib/ph-server";
 
 const PACKAGE_KEYS = ["remote-2h", "half-day", "full-day"] as const;
 type PackageKey = (typeof PACKAGE_KEYS)[number];
@@ -71,6 +72,12 @@ export async function createConsultationLead(formData: FormData) {
 
     const leads = await col("consultation_leads");
     await leads.insertOne(leadDoc);
+
+    await captureServer("specialist_lead_submitted", {
+        package: parsed.package,
+        org: parsed.org,
+        source: "specialist-review",
+    });
 
     // Optional Slack ping
     if (process.env.CONSULT_SLACK_WEBHOOK_URL) {
