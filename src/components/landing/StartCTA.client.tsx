@@ -21,8 +21,10 @@ export default function StartCTA({
         ph.capture("start_survey", { source: "landing", path: "/digital-health-check" });
 
         // Optional Google Ads conversion (safe if gtag isn’t present)
-        // @ts-expect-error gtag may not exist
-        window.gtag?.("event", "conversion", { send_to: "AW-XXXX/start_survey" });
+        const gtag = (window as any).gtag as undefined | ((...args: any[]) => void);
+        gtag?.("event", "conversion", {
+            send_to: process.env.NEXT_PUBLIC_GADS_START_SURVEY_TAG || "AW-XXXX/start_survey",
+        });
 
         router.push("/signin?callbackUrl=/app/take-survey");
     }
