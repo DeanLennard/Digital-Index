@@ -96,8 +96,6 @@ export default async function BillingPage({
             <BillingBeacon
                 orgId={orgId}
                 status={sp?.status}
-                isPremium={isPremium}
-                lastInvoice={invoices[0]}
             />
 
             <div className="rounded-lg border bg-white p-5 space-y-3">

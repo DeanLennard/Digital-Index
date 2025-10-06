@@ -3,28 +3,28 @@
 import { useEffect } from "react";
 import { ph } from "@/lib/ph";
 
-type Invoice = { number?: string; amountPaid?: number; currency?: string; createdAt?: string | Date };
-
 export default function BillingBeacon({
-                                          orgId, status, isPremium, lastInvoice,
+                                          orgId,
+                                          status,
                                       }: {
-    orgId: string; status?: string; isPremium: boolean; lastInvoice?: Invoice;
+    orgId: string;
+    status?: string;
 }) {
     useEffect(() => {
-        if (status !== "success" || !isPremium) return;
-        const stamp =
-            lastInvoice?.number ||
-            (lastInvoice?.createdAt ? new Date(lastInvoice.createdAt).toISOString().slice(0, 10) : "unknown");
-        const key = `ph-upgrade-${orgId}-${stamp}`;
+        // Fire as soon as we see ?status=success on return from checkout
+        if (status !== "success") return;
+
+        // Deduplicate for this tab/session so reloads don’t spam
+        const key = `ph-upgrade-${orgId}`;
         if (sessionStorage.getItem(key)) return;
 
         ph.capture("upgrade", {
-            amount_minor: lastInvoice?.amountPaid ?? null,
-            currency: (lastInvoice?.currency || "GBP").toUpperCase(),
-            invoice_number: lastInvoice?.number || null,
+            source: "client",
+            // keep it minimal; invoice details will be added later by webhook, if you want
         });
+
         sessionStorage.setItem(key, "1");
-    }, [orgId, status, isPremium, lastInvoice]);
+    }, [orgId, status]);
 
     return null;
 }
