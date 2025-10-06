@@ -17,6 +17,7 @@ import "@/app/globals.css";
 import OrgSwitcherServer from "@/components/app/OrgSwitcherServer";
 import Image from 'next/image'
 import SpecialistCTA from "@/components/app/SpecialistCTA";
+import ActiveUseBeacon from "@/components/ActiveUseBeacon";
 
 type OrgWL = {
     name?: string | null;
@@ -214,6 +215,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                     © {new Date().getFullYear()} Digital Index
                 </div>
             </footer>
+            <ActiveUseBeacon />
             <AnalyticsLoader />
         </div>
     );

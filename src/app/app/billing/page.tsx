@@ -5,6 +5,8 @@ import { getOrgContext } from "@/lib/access";
 import { ObjectId } from "mongodb";
 import { UpgradeButton } from "@/components/billing/UpgradeButton";
 import ManagePortalButtonGate from "@/components/billing/ManagePortalButtonGate";
+import BillingBeacon from "./BillingBeacon";
+import type { InvoiceDoc } from "@/types/billing";
 
 type SP = { status?: string };
 
@@ -43,9 +45,22 @@ export default async function BillingPage({
 
     const invoicesCol = await col("invoices");
     const invoices = await invoicesCol
-        .find(
+        .find<InvoiceDoc>(
             { orgId },
-            { projection: { _id: 0, number: 1, amountPaid: 1, currency: 1, hostedInvoiceUrl: 1, invoicePdf: 1, createdAt: 1, periodStart: 1, periodEnd: 1, status: 1 } }
+            {
+                projection: {
+                    _id: 0,
+                    number: 1,
+                    amountPaid: 1,
+                    currency: 1,
+                    hostedInvoiceUrl: 1,
+                    invoicePdf: 1,
+                    createdAt: 1,
+                    periodStart: 1,
+                    periodEnd: 1,
+                    status: 1,
+                },
+            },
         )
         .sort({ createdAt: -1 })
         .limit(24)
@@ -77,6 +92,13 @@ export default async function BillingPage({
                     {note}
                 </div>
             )}
+
+            <BillingBeacon
+                orgId={orgId}
+                status={sp?.status}
+                isPremium={isPremium}
+                lastInvoice={invoices[0]}
+            />
 
             <div className="rounded-lg border bg-white p-5 space-y-3">
                 <div className="flex items-center justify-between">

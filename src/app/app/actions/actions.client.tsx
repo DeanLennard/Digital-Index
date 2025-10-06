@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { CategoryKey } from "@/lib/scoring";
 import type { Level } from "@/lib/levels";
+import { ph } from "@/lib/ph";
 
 type Item = { title: string; link?: string; status: "todo" | "done" };
 type Recommended = { title: string; link?: string; category: CategoryKey; estMinutes?: number };
@@ -131,6 +132,7 @@ export default function ActionsClient({
     async function toggle(idx: number) {
         setBusy(true);
         try {
+            const before = items[idx]?.status;
             const res = await fetch("/api/actions/monthly", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -140,6 +142,11 @@ export default function ActionsClient({
             if (res.ok) {
                 const data = await res.json();
                 setItems(data.items);
+
+                if (before !== "done" && data.items[idx]?.status === "done") {
+                    const it = data.items[idx];
+                    ph.capture("action_completed", { title: it.title, link: it.link || null });
+                }
             }
         } finally {
             setBusy(false);

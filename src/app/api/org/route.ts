@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { auth } from "@/lib/auth";
 import { col } from "@/lib/db";
+import { ph } from "@/lib/ph";
 
 const CH_BASE = `${process.env.NEXTAUTH_URL || "https://www.digitalindex.co.uk"}/api/companies-house/company`;
 
@@ -87,6 +88,8 @@ export async function POST(req: Request) {
     }
 
     const { insertedId } = await orgs.insertOne(doc);
+
+    ph.capture("create_account", { org_id: insertedId });
 
     // Link user → org (legacy array)
     await users.updateOne(

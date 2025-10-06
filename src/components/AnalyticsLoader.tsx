@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { hasConsented } from "@/lib/consent";
+import { ph } from "@/lib/ph";
 
 export default function AnalyticsLoader() {
     const [phLoaded, setPhLoaded] = useState(false);
@@ -20,14 +21,61 @@ export default function AnalyticsLoader() {
             return;
         }
         const posthog = (await import("posthog-js")).default;
+
+        const persistence = hasConsented("analytics") ? "localStorage" : "memory";
+
         posthog.init(key, {
             api_host: host,
             capture_pageview: true,
             autocapture: true,
-            persistence: "memory", // no cookies unless you change this
+            persistence,
             loaded: () => setPhLoaded(true),
         });
         (window as any).posthog = posthog;
+
+        try {
+            const url = new URL(window.location.href);
+            const utm = ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"]
+                .reduce((acc, k) => {
+                    const v = url.searchParams.get(k);
+                    if (v) acc[k] = v;
+                    return acc;
+                }, {} as Record<string,string>);
+            if (Object.keys(utm).length) {
+                posthog.register_once(utm);
+            }
+        } catch {}
+    }
+
+    async function bootstrapIdentity() {
+        // You can expose identity from a tiny endpoint
+        // { userId, email, orgId, orgName, plan, isWhiteLabel, partnerOrgId }
+        try {
+            const r = await fetch("/api/analytics/bootstrap", { cache: "no-store" });
+            if (!r.ok) return;
+            const me = await r.json();
+
+            if (me?.userId) {
+                ph.identify(me.userId, {
+                    email: me.email,
+                    plan: me.plan, // "free" | "premium"
+                    is_whitelabel: !!me.isWhiteLabel,
+                    partner_org_id: me.partnerOrgId || null,
+                    org_id: me.orgId || null,
+                    org_name: me.orgName || null,
+                });
+            }
+
+            // B2B group analytics (amazing for org-level funnels)
+            if (me?.orgId) {
+                ph.group("organization", me.orgId, {
+                    name: me.orgName || me.orgId,
+                    plan: me.plan,
+                    is_whitelabel: !!me.isWhiteLabel,
+                    partner_org_id: me.partnerOrgId || null,
+                });
+            }
+        } catch {}
     }
 
     function initLinkedIn() {
@@ -63,11 +111,9 @@ export default function AnalyticsLoader() {
 
     useEffect(() => {
         const loadByConsent = () => {
-            // Your consent categories may differ; keep LinkedIn behind “marketing/ads”.
-            if (hasConsented("analytics") && !phLoaded) initPosthog();
-            if (hasConsented("marketing") && !liLoaded) initLinkedIn(); // or "ads"
+            if (hasConsented("analytics") && !phLoaded) initPosthog().then(bootstrapIdentity);
+            if (hasConsented("marketing") && !liLoaded) initLinkedIn();
         };
-
         loadByConsent();
         const onChange = () => loadByConsent();
         window.addEventListener("di-consent-changed", onChange);

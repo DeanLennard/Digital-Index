@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { Role } from "@/lib/zod";
+import { ph } from "@/lib/ph";
 
 type Member = { userId: string; role: "owner"|"admin"|"member"; email?: string; name?: string };
 type Invite = { email: string; role: "owner"|"admin"|"member"; token: string; expiresAt?: string | Date };
@@ -39,6 +40,10 @@ export default function TeamClient({
             }
             // Optimistic add (no email duplication noise)
             setInvites([{ email: email.toLowerCase(), role, token: data.joinUrl.split("/").pop(), expiresAt: new Date(Date.now()+14*864e5) }, ...invites]);
+
+            const domain = (email.split("@")[1] || "").toLowerCase();
+            ph.capture("team_invited", { invited_email_domain: domain, role });
+
             // Show copy dialog
             await navigator.clipboard?.writeText(data.joinUrl).catch(() => {});
             alert("Invite link copied to clipboard.");

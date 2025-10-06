@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { Button } from "@/components/ui/button";
+import { ph } from "@/lib/ph";
 
 type PulseQ = {
     _id: string;
@@ -42,6 +43,20 @@ export default function PulseClient({
             return;
         }
         setSubmitting(true);
+
+        const catBuckets: Record<string, number[]> = {};
+        questions.forEach(q => {
+            const v = answers[q._id];
+            if (v == null) return;
+            (catBuckets[q.cat] ||= []).push(v);
+        });
+        const byCatAvg = Object.fromEntries(
+            Object.entries(catBuckets).map(([k, arr]) => [k, Math.round((arr.reduce((a,b)=>a+b,0)/arr.length)*10)/10])
+        );
+        const mean = Math.round(
+            (Object.values(answers).reduce((a,b)=>a+b,0) / Object.values(answers).length) * 10
+        ) / 10;
+
         try {
             const res = await fetch("/api/surveys/pulse", {
                 method: "POST",
@@ -53,8 +68,17 @@ export default function PulseClient({
                 const msg = await res.text().catch(() => "");
                 alert(`Couldn’t save pulse (${res.status}). ${msg}`);
                 setSubmitting(false);
+
                 return;
             }
+
+            ph.capture("pulse_submitted", {
+                month,
+                answered: Object.keys(answers).length,
+                mean,            // overall 0..5
+                by_cat: byCatAvg // per-category 0..5
+            })
+
             // Back to dashboard (or a “thanks” page)
             window.location.href = "/app";
         } catch (e) {

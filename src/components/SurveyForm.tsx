@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { DbQuestion, Cat } from "@/lib/surveys";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ph } from "@/lib/ph";
 
 const CAT_LABEL: Record<Cat, string> = {
     collaboration: "Collaboration",
@@ -28,6 +29,8 @@ export function SurveyForm({
     initialAnswers?: Record<string, number>;
     submitLabel?: string;
 }) {
+    const startedRef = useRef(false);
+    const t0Ref = useRef<number | null>(null);
     // answers store normalised 0..5 numbers keyed by question _id
     const [answers, setAnswers] = useState<Record<string, number>>({});
     const firstUnansweredRef = useRef<string | null>(null);
@@ -63,6 +66,11 @@ export function SurveyForm({
 
     function setAnswer(qid: string, choiceIndex: number) {
         setAnswers(a => ({ ...a, [qid]: idxToScore(choiceIndex) }));
+        if (!startedRef.current) {
+            startedRef.current = true;
+            t0Ref.current = Date.now();
+            ph.capture("start_survey");  // add props if you want: { mode, questionId: qid }
+        }
     }
 
     function getSelectedIndex(qid: string): number | null {
@@ -86,6 +94,8 @@ export function SurveyForm({
         }
         onSubmit(answers);
     }
+
+    (window as any).__survey_start_ts = t0Ref.current;
 
     return (
         <form onSubmit={submit} className="space-y-8">

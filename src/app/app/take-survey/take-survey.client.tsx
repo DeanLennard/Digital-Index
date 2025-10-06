@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { SurveyForm } from "@/components/SurveyForm";
 import type { DbQuestion } from "@/lib/surveys";
 import type { CategoryKey } from "@/lib/scoring";
+import { ph } from "@/lib/ph";
 
 const CAT_ORDER: CategoryKey[] = [
     "collaboration",
@@ -63,6 +64,8 @@ export default function TakeSurveyClient({
     const isLastStep = step === catsWithQs.length - 1;
 
     async function submitToApi(allAnswers: Record<string, number>) {
+        const t0 = (window as any).__survey_start_ts || null;
+
         if (mode === "quarterly" && locked) {
             alert("Your next quarterly isn’t available yet.");
             return;
@@ -90,6 +93,15 @@ export default function TakeSurveyClient({
         }
 
         const data = await res.json();
+
+        ph.capture("complete_survey", {
+            mode,                              // "baseline" | "quarterly"
+            questions_count: Object.keys(answers).length,
+            duration_ms: t0 ? Date.now() - Number(t0) : null,
+            survey_id: data.surveyId,
+            total_score: data.total,           // if returned
+        });
+
         window.location.href = `/app/reports/pdf/${data.surveyId}`;
     }
 
