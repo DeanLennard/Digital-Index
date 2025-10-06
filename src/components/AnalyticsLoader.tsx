@@ -29,7 +29,11 @@ export default function AnalyticsLoader() {
             capture_pageview: true,
             autocapture: true,
             persistence,
-            loaded: () => setPhLoaded(true),
+            loaded: () => {
+                setPhLoaded(true);
+                // Let other components know PH is ready
+                window.dispatchEvent(new Event("ph:loaded"));
+            },
         });
         (window as any).posthog = posthog;
 
