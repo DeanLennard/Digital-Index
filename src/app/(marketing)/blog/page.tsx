@@ -113,7 +113,7 @@ export default async function BlogIndexPage() {
             <div className="rounded-lg border bg-white p-5 text-center">
                 <h3 className="text-lg font-semibold text-[var(--navy)]">Check your digital baseline</h3>
                 <p className="mt-1 text-sm text-gray-700">
-                    10–15 questions, instant score and next steps. Free for SMEs.
+                    10-15 questions, instant score and next steps. Free for SMEs.
                 </p>
                 <div className="mt-3">
                     <Link

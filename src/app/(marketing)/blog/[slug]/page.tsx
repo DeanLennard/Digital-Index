@@ -91,8 +91,8 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
                         <div className="mt-2 flex flex-wrap gap-1">
                             {a.tags.map((t: string) => (
                                 <span key={t} className="text-[11px] rounded px-2 py-0.5 border text-gray-600">
-                  {t}
-                </span>
+                                    {t}
+                                </span>
                             ))}
                         </div>
                     )}
@@ -100,7 +100,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
                     {/* Inline CTA near the top */}
                     <div className="mt-4 rounded-md bg-[var(--primary)]/5 border border-[var(--primary)]/20 p-3 flex items-center justify-between gap-3">
                         <div className="text-sm text-gray-800">
-                            Get your free digital baseline in minutes — instant score & recommendations.
+                            Get your free digital baseline in minutes - instant score & recommendations.
                         </div>
                         <BlogCTA slug={a.slug} />
                     </div>
