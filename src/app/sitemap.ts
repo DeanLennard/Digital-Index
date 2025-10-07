@@ -1,34 +1,36 @@
 // src/app/sitemap.ts
+export const runtime = "nodejs";
+
 import type { MetadataRoute } from "next";
+import { col } from "@/lib/db";
 
 const STATIC_PATHS = [
-    "/",                       // Home
+    "/", // Home
     "/how-it-works",
     "/features",
     "/benchmarks",
     "/pricing",
-    "/industries",             // Listing page
+    "/industries",
     "/industries/accounting",
     "/industries/retail-ecommerce",
     "/industries/professional-services",
     "/industries/construction-trades",
     "/industries/healthcare-clinics",
+    "/digital-health-check",
     "/privacy",
     "/terms",
-    // If you want to expose the survey page publicly, uncomment:
-    // "/app/take-survey",
+    "/blog",
 ];
 
-export const revalidate = 86400; // re-generate daily (optional)
+export const revalidate = 86400; // regenerate daily
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const base =
-        process.env.NEXTAUTH_URL?.replace(/\/+$/, "") ||
-        "https://www.digitalindex.co.uk";
-
+        (process.env.NEXTAUTH_URL || "https://www.digitalindex.co.uk").replace(/\/+$/, "");
     const now = new Date();
 
-    return STATIC_PATHS.map((path) => ({
+    // Static entries
+    const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((path) => ({
         url: `${base}${path}`,
         lastModified: now,
         changeFrequency: path.startsWith("/industries") ? "monthly" : "weekly",
@@ -39,4 +41,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
                     ? 0.6
                     : 0.8,
     }));
+
+    // Blog posts (published only)
+    const articlesCol = await col("articles");
+    const posts = await articlesCol
+        .find(
+            { status: "published" },
+            { projection: { slug: 1, updatedAt: 1, createdAt: 1 } } as any
+        )
+        .sort({ updatedAt: -1, createdAt: -1 })
+        .limit(1000)
+        .toArray();
+
+    const blogEntries: MetadataRoute.Sitemap = posts.map((p: any) => ({
+        url: `${base}/blog/${p.slug}`,
+        lastModified: p.updatedAt || p.createdAt || now,
+        changeFrequency: "weekly",
+        priority: 0.6,
+    }));
+
+    return [
+        ...staticEntries,
+        ...blogEntries,
+    ];
 }

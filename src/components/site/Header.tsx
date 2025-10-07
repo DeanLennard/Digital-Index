@@ -13,6 +13,7 @@ const primaryNav = [
     { href: "/features", label: "Features" },
     { href: "/benchmarks", label: "Benchmarks" },
     { href: "/pricing", label: "Pricing" },
+    { href: "/blog", label: "Blog" },
 ];
 
 const industries = [
