@@ -261,7 +261,7 @@ export default function ArticleEditor({
                         contentEditable
                         suppressContentEditableWarning
                         onInput={onEditorInput}
-                        className="min-h-[260px] rounded border bg-white p-3 prose prose-sm max-w-none focus:outline-none"
+                        className="min-h-[260px] rounded border bg-white p-3 prose prose-sm max-w-none focus:outline-none tiptap"
                     />
                     <p className="mt-1 text-xs text-gray-500">
                         Tip: Paste from docs; use toolbar for headings/lists. Saved as HTML.
@@ -271,7 +271,7 @@ export default function ArticleEditor({
                 {showPreview && (
                     <div>
                         <div className="text-xs text-gray-600 mb-1">Live preview</div>
-                        <div className="min-h-[260px] rounded border bg-white p-3 prose prose-sm max-w-none">
+                        <div className="min-h-[260px] rounded border bg-white p-3 prose prose-sm max-w-none tiptap">
                             {/* eslint-disable-next-line react/no-danger */}
                             <div
                                 dangerouslySetInnerHTML={{

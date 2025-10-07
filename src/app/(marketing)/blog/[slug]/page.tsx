@@ -107,7 +107,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
 
                     {/* Content */}
                     <div
-                        className="prose prose-sm sm:prose max-w-none mt-6"
+                        className="prose prose-sm sm:prose max-w-none mt-6 tiptap"
                         // This HTML comes from your admin editor; ensure trusted input
                         dangerouslySetInnerHTML={{ __html: a.contentHtml || "" }}
                     />
