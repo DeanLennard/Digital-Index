@@ -289,7 +289,7 @@ export default function HomePage() {
                         {[
                             "A digital maturity score for each category (Security, Collaboration, Finance & Ops, Sales & Marketing, Skills & Culture).",
                             "A benchmark against UK SME averages to see where you stand.",
-                            "A PDF snapshot you can share with your team.",
+                            "A snapshot you can share with your team.",
                             "Your top 3 recommended actions: practical, specific, and level-matched.",
                             "Option to upgrade for monthly nudges, trends over time, and exports.",
                         ].map((l, i) => (
