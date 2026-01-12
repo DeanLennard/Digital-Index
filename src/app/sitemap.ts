@@ -1,19 +1,4 @@
 // src/app/sitemap.ts
-
-import type { MetadataRoute } from "next";
-
-export const dynamic = "force-dynamic"; // <- key
-// or: export const revalidate = 0;
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    // fetch DB here (runtime), or call your API, etc.
-    return [
-        { url: "https://digitalindex.co.uk", lastModified: new Date() },
-    ];
-}
-
-
-/*
 export const runtime = "nodejs";
 
 import type { MetadataRoute } from "next";
@@ -80,4 +65,3 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ...blogEntries,
     ];
 }
-*/
